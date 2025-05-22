@@ -40,16 +40,15 @@ class WelcomeActivity : AppCompatActivity() {
         val intent = AuthUI.getInstance()
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
-            .setIsSmartLockEnabled(false)
             .build()
 
         signInLauncher.launch(intent)
     }
 
     private fun onSignInResult(res: FirebaseAuthUIAuthenticationResult) {
+        val response = res.idpResponse
         if (res.resultCode == RESULT_OK) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()               // non torna al welcome con “back”
+            val user = FirebaseAuth.getInstance().currentUser
         } else {
             Toast.makeText(this,
                 res.idpResponse?.error?.message ?: "Login cancellato",

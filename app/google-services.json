@@ -12,7 +12,12 @@
           "package_name": "it.progmob.myconcerts"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "509526701768-g3ajhmgk9lfega4aaa7j0g2vfm7utq41.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDhoTBcVxwAG2qS6plMTt0NdMpzcXrexoI"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "509526701768-g3ajhmgk9lfega4aaa7j0g2vfm7utq41.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
