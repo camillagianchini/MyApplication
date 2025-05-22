@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "509526701768-g3ajhmgk9lfega4aaa7j0g2vfm7utq41.apps.googleusercontent.com",
+          "client_id": "509526701768-55dthslvk5t0p61en3u8h66247e5qvvb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "it.progmob.myconcerts",
+            "certificate_hash": "d984a3c31118d7ebbc9abdaa09705f55aee340bc"
+          }
+        },
+        {
+          "client_id": "509526701768-4gcjdljd233o8td7mr3v5gnpmgua3l3n.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "509526701768-g3ajhmgk9lfega4aaa7j0g2vfm7utq41.apps.googleusercontent.com",
+              "client_id": "509526701768-4gcjdljd233o8td7mr3v5gnpmgua3l3n.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

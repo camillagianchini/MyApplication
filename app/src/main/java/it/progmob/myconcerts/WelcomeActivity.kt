@@ -34,7 +34,8 @@ class WelcomeActivity : AppCompatActivity() {
     private fun launchSignInFlow() {
         val providers = listOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
-            // AuthUI.IdpConfig.GoogleBuilder().build() // se l’hai abilitato
+            AuthUI.IdpConfig.GoogleBuilder().build(),
+
         )
 
         val intent = AuthUI.getInstance()
