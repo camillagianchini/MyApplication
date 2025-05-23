@@ -12,19 +12,5 @@
         android:layout_height="wrap_content"
         tools:context="it.progmob.myconcerts.WelcomeActivity">
 
-        <EditText
-            android:id="@+id/usernameEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="@string/nome"
-            android:inputType="textPersonName"
-            android:layout_marginTop="32dp"
-            android:padding="16dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- Aggiungi qui eventualmente il pulsante login/altro contenuto -->
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
