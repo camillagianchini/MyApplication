@@ -50,6 +50,10 @@ class WelcomeActivity : AppCompatActivity() {
         val response = res.idpResponse
         if (res.resultCode == RESULT_OK) {
             val user = FirebaseAuth.getInstance().currentUser
+
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         } else {
             Toast.makeText(this,
                 res.idpResponse?.error?.message ?: "Login cancellato",
