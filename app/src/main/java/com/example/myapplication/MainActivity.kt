@@ -17,11 +17,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val nomeUtente = intent.getStringExtra("user_name") ?: "Anonimo"
+
         setContent {
             MyApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = nomeUtente,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
