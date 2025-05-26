@@ -7,7 +7,6 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.MainActivity
 import com.firebase.ui.auth.AuthUI
@@ -31,7 +30,7 @@ class WelcomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_welcome)
 
-        // Verifica se l'utente è già autenticato FirebaseAuth.getInstance().signOut()
+       FirebaseAuth.getInstance().signOut()
 
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
@@ -60,7 +59,7 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
-        val response = result.idpResponse
+        //val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
