@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/main"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:context="it.progmob.myconcerts.WelcomeActivity">
+        android:text="Sign In with Email or Google"/>
 
-        <!-- Qui inserirai i tuoi elementi UI, come Button, TextView, ecc. -->
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+</LinearLayout>
