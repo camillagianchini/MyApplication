@@ -8,7 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.example.myapplication.MainActivity
+//import it.progmob.myconcerts.MainActivity
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
