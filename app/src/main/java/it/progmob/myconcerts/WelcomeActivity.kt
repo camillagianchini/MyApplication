@@ -30,11 +30,7 @@ class WelcomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_welcome)
 
-        val forTesting = true // Cambia in false in produzione
-
-        if (forTesting) {
-            FirebaseAuth.getInstance().signOut()
-        }
+       FirebaseAuth.getInstance().signOut()
 
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
@@ -56,6 +52,7 @@ class WelcomeActivity : AppCompatActivity() {
 
         val intent = AuthUI.getInstance()
             .createSignInIntentBuilder()
+            .setTheme(R.style.FirebaseAuthTheme)
             .setAvailableProviders(providers)
             .build()
 
@@ -63,6 +60,7 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
+        //val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
@@ -95,7 +93,6 @@ class WelcomeActivity : AppCompatActivity() {
                         navigateToMainActivity(user)
                     }
             } else {
-                Log.d("Firestore", "Utente già presente in Firestore")
                 navigateToMainActivity(user)
             }
         }.addOnFailureListener { e ->
