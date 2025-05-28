@@ -39,7 +39,7 @@ android {
         compose = true
     }
 }
-
+val nav_version = ("2.7.0-alpha01") // O la versione stabile più recente di Compose Navigation
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -62,6 +62,14 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.firebaseui:firebase-ui-auth:9.0.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // Verifica l'ultima versione
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0") // O la versione più recente disponibile // Per collectAsS
+    implementation("androidx.compose.material3:material3:1.2.1") // Verifica l'ultima versione
+
+    // Per icone Material
+    implementation("androidx.compose.material:material-icons-core:1.6.7") // Verifica l'ultima versione
+    implementation("androidx.compose.material:material-icons-extended:1.6.7") // Verifica l'ulti
+    implementation ("androidx.navigation:navigation-compose:$nav_version")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
