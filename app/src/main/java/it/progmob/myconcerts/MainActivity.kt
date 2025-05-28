@@ -1,39 +1,24 @@
-package it.progmob.myconcerts
-
+// File: MainActivity.kt
 import android.os.Bundle
-import it.progmob.myconcerts.ui.theme.MyApplicationTheme
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
+import com.example.myconcerts.databinding.ActivityMainBinding
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MyApplicationTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Greeting("Welcome to MyConcerts!")
-                }
-            }
-        }
-    }
-}
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = name)
-}
+        // Configurazione NavController
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
 
-@Preview
-@Composable
-fun Preview() {
-    MyApplicationTheme {
-        Greeting("Android")
+        // Collega la toolbar al NavController
+        binding.toolbar.setupWithNavController(navController)
     }
 }
