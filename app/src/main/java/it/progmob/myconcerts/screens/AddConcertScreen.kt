@@ -174,32 +174,36 @@ fun AddConcertScreen(
 
             // Combined Date and Time display or separate fields
             // Option 1: Single field showing combined date and time from ViewModel's Timestamp
-            OutlinedTextField(
-                value = uiState.dateTimestamp?.toDate()?.let { dateTimeFormatter.format(it) } ?: "",
-                onValueChange = { /* Not directly editable */ },
-                label = { Text("Data e Ora Concerto *") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.dateError != null, // This error might now refer to combined date/time
-                supportingText = {
-                    if (uiState.dateError != null) {
-                        Text(text = uiState.dateError!!, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                // We'll use separate clickable areas or buttons for date and time pickers
-            )
+// ⬇️ Mostra solo se la data è stata scelta
+            uiState.dateTimestamp?.let { timestamp ->
+                val formattedDateTime = remember(timestamp) {
+                    dateTimeFormatter.format(timestamp.toDate())
+                }
 
+                Text(
+                    text = "Data Concerto: $formattedDateTime",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+
+// ⬇️ Pulsanti per selezionare data e ora
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 Button(onClick = { datePickerDialog.show() }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.DateRange, contentDescription = "Seleziona Data", modifier = Modifier.padding(end=4.dp))
+                    Icon(Icons.Filled.DateRange, contentDescription = "Seleziona Data", modifier = Modifier.padding(end = 4.dp))
                     Text("Data")
                 }
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = { timePickerDialog.show() }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.Schedule, contentDescription = "Seleziona Ora", modifier = Modifier.padding(end=4.dp))
+                    Icon(Icons.Filled.Schedule, contentDescription = "Seleziona Ora", modifier = Modifier.padding(end = 4.dp))
                     Text("Ora")
                 }
             }
+
 
 
             Spacer(modifier = Modifier.weight(1f))

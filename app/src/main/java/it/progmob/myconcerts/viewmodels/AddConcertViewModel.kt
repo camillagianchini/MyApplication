@@ -1,3 +1,5 @@
+package it.progmob.myconcerts.viewmodels
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
@@ -64,6 +66,10 @@ class AddConcertViewModel : ViewModel() {
 
             AddConcertEvent.SaveConcertClicked -> {
                 saveConcert()
+            }
+
+            else -> {
+
             }
         }
     }
