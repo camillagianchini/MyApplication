@@ -123,7 +123,8 @@ class AddConcertViewModel : ViewModel() {
 
         firestore.collection("concerts")
             .add(newConcert)
-            .addOnSuccessListener {
+            .addOnSuccessListener { documentReference ->
+                val concertId = documentReference.id
                 _uiState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
                     _effect.emit(AddConcertEffect.ShowSnackbar( "Concert saved successfully!"))

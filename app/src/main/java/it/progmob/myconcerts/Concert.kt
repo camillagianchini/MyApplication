@@ -3,6 +3,7 @@ package it.progmob.myconcerts
 import com.google.firebase.Timestamp
 
 data class Concert(
+    val id: String = "",
     val artist: String = "",
     val location: String = "",
     val date: Timestamp = Timestamp.now(),
