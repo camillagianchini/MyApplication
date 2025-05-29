@@ -26,17 +26,11 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
     val dateFormatter = remember { SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()) }
     var remainingTime by remember { mutableStateOf(calculateRemainingTime(concert?.date)) }
 
-    LaunchedEffect(concert?.date) {
-        while (true) {
-            remainingTime = calculateRemainingTime(concert?.date)
-            kotlinx.coroutines.delay(1000)
-        }
-    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(concert?.artist ?: "Concert details") },
+                title = { Text(concert?.artist ?: "Concert") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -50,24 +44,21 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = concert?.artist ?: "",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 12.dp)
+                style = MaterialTheme.typography.headlineLarge
             )
 
             Text(
-                text = concert?.location ?: "",
+                text = "Location: ${concert?.location ?: ""}",
                 style = MaterialTheme.typography.bodyLarge
             )
 
             Text(
-                text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 8.dp)
+                text = "Date: ${concert?.date?.let { dateFormatter.format(it.toDate()) } ?: ""}",
+                style = MaterialTheme.typography.bodyLarge
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -79,13 +70,12 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
 
             Text(
                 text = remainingTime,
-                style = MaterialTheme.typography.displayMedium,
-                modifier = Modifier.padding(top = 8.dp)
-
+                style = MaterialTheme.typography.displayMedium
             )
         }
     }
 }
+
 private fun calculateRemainingTime(date: Timestamp?): String {
     if (date == null) return "N/A"
 
