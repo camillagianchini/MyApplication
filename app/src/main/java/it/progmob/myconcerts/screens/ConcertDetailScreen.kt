@@ -30,7 +30,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(concert?.artist ?: "Concert") },
+                title = { Text(concert?.artist ?: "Concert details") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -44,33 +44,33 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = concert?.artist ?: "",
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Text(
-                text = "Location: ${concert?.location ?: ""}",
+                text = concert?.location ?: "",
                 style = MaterialTheme.typography.bodyLarge
             )
 
             Text(
-                text = "Date: ${concert?.date?.let { dateFormatter.format(it.toDate()) } ?: ""}",
-                style = MaterialTheme.typography.bodyLarge
+                text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 8.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = "Time remaining:",
-                style = MaterialTheme.typography.titleMedium
-            )
 
             Text(
                 text = remainingTime,
-                style = MaterialTheme.typography.displayMedium
+                style = MaterialTheme.typography.displayMedium,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
