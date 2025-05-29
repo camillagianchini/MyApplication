@@ -8,7 +8,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-//import it.progmob.myconcerts.MainActivity
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
@@ -30,7 +29,7 @@ class WelcomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_welcome)
 
-        val forTesting = true // Cambia in false in produzione
+        val forTesting = true
 
         if (forTesting) {
             FirebaseAuth.getInstance().signOut()
@@ -78,30 +77,28 @@ class WelcomeActivity : AppCompatActivity() {
     private fun checkUserInFirestore(user: FirebaseUser) {
         val db = Firebase.firestore
         val uid = user.uid
-        val userDocRef = db.collection("utenti").document(uid)
+        val userDocRef = db.collection("users").document(uid)
 
         userDocRef.get().addOnSuccessListener { document ->
             if (!document.exists()) {
                 val newUser = hashMapOf(
-                    "nome" to (user.displayName ?: "Anonimo"),
+                    "name" to (user.displayName ?: "unknown"),
                     "email" to user.email,
-                    "registrato il" to Timestamp.now()
+                    "registration date" to Timestamp.now()
                 )
                 userDocRef.set(newUser)
                     .addOnSuccessListener {
-                        Log.d("Firestore", "Nuovo utente salvato")
                         navigateToMainActivity(user)
                     }
                     .addOnFailureListener {
-                        Log.e("Firestore", "Errore salvataggio", it)
                         navigateToMainActivity(user)
                     }
             } else {
                 navigateToMainActivity(user)
             }
         }.addOnFailureListener { e ->
-            Log.e("Firestore", "Errore Firestore", e)
-            Toast.makeText(this, "Errore durante il controllo utente", Toast.LENGTH_SHORT).show()
+            Log.e("Firestore", "Error Firestore", e)
+            Toast.makeText(this, "Error checking user in Firestore", Toast.LENGTH_SHORT).show()
         }
     }
 

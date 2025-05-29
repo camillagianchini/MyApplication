@@ -2,14 +2,12 @@
 package it.progmob.myconcerts.screens
 
 import android.app.DatePickerDialog
-import android.app.TimePickerDialog // Import TimePickerDialog
+import android.app.TimePickerDialog
 import android.widget.DatePicker
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Schedule // Icon for time
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -41,13 +39,11 @@ fun AddConcertScreen(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
-    // Formatter for displaying date and time
     val dateTimeFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault()) // For the time field if separate
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Temporary states to hold selected date and time components before combining
     var selectedDateCalendar by remember { mutableStateOf<Calendar?>(null) }
     var selectedTimeHour by remember { mutableStateOf<Int?>(null) }
     var selectedTimeMinute by remember { mutableStateOf<Int?>(null) }
@@ -69,28 +65,20 @@ fun AddConcertScreen(
         }
     }
 
-    // Function to combine date and time and update ViewModel
     fun updateViewModelWithDateTime() {
         if (selectedDateCalendar != null && selectedTimeHour != null && selectedTimeMinute != null) {
             val combinedCalendar = Calendar.getInstance().apply {
-                timeInMillis = selectedDateCalendar!!.timeInMillis // Set date part
+                timeInMillis = selectedDateCalendar!!.timeInMillis
                 set(Calendar.HOUR_OF_DAY, selectedTimeHour!!)
                 set(Calendar.MINUTE, selectedTimeMinute!!)
-                set(Calendar.SECOND, 0) // Optional: Reset seconds
-                set(Calendar.MILLISECOND, 0) // Optional: Reset milliseconds
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
             }
             viewModel.onEvent(AddConcertEvent.DateChanged(Timestamp(combinedCalendar.time)))
         } else if (selectedDateCalendar != null && (selectedTimeHour == null || selectedTimeMinute == null)) {
-            // If only date is selected, but time was previously selected and now cleared,
-            // or if we want to default time if not picked.
-            // For now, let's assume we need both, or only date if time is not picked.
-            // If only date is picked, the timestamp in ViewModel will have default time (00:00 or current if not reset).
-            // This logic can be refined based on desired UX.
-            // For simplicity, let's send only the date if time is not yet picked,
-            // the ViewModel's Timestamp will reflect this.
+
             val dateOnlyCalendar = Calendar.getInstance().apply{
                 timeInMillis = selectedDateCalendar!!.timeInMillis
-                // Optionally reset time to midnight if you want date selection to imply start of day
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
@@ -107,7 +95,7 @@ fun AddConcertScreen(
             selectedDateCalendar = Calendar.getInstance().apply {
                 set(year, month, dayOfMonth)
             }
-            updateViewModelWithDateTime() // Update VM after date is picked
+            updateViewModelWithDateTime()
         },
         selectedDateCalendar?.get(Calendar.YEAR) ?: calendar.get(Calendar.YEAR),
         selectedDateCalendar?.get(Calendar.MONTH) ?: calendar.get(Calendar.MONTH),
@@ -119,11 +107,11 @@ fun AddConcertScreen(
         { _, hourOfDay: Int, minute: Int ->
             selectedTimeHour = hourOfDay
             selectedTimeMinute = minute
-            updateViewModelWithDateTime() // Update VM after time is picked
+            updateViewModelWithDateTime()
         },
         selectedTimeHour ?: calendar.get(Calendar.HOUR_OF_DAY),
         selectedTimeMinute ?: calendar.get(Calendar.MINUTE),
-        true // true for 24-hour format
+        true
     )
 
     Scaffold(
@@ -139,7 +127,7 @@ fun AddConcertScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                "Inserisci i dettagli del concerto",
+                "Insert concert details",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -147,7 +135,7 @@ fun AddConcertScreen(
             OutlinedTextField(
                 value = uiState.artist,
                 onValueChange = { viewModel.onEvent(AddConcertEvent.ArtistChanged(it)) },
-                label = { Text("Nome Artista *") },
+                label = { Text("Name artist *") },
                 // ... rest of artist TextField
                 isError = uiState.artistError != null,
                 supportingText = {
@@ -161,7 +149,7 @@ fun AddConcertScreen(
             OutlinedTextField(
                 value = uiState.location,
                 onValueChange = { viewModel.onEvent(AddConcertEvent.LocationChanged(it)) },
-                label = { Text("Luogo *") },
+                label = { Text("Location *") },
                 // ... rest of location TextField
                 isError = uiState.locationError != null,
                 supportingText = {
@@ -172,16 +160,13 @@ fun AddConcertScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Combined Date and Time display or separate fields
-            // Option 1: Single field showing combined date and time from ViewModel's Timestamp
-// ⬇️ Mostra solo se la data è stata scelta
             uiState.dateTimestamp?.let { timestamp ->
                 val formattedDateTime = remember(timestamp) {
                     dateTimeFormatter.format(timestamp.toDate())
                 }
 
                 Text(
-                    text = "Data Concerto: $formattedDateTime",
+                    text = "Date and time: $formattedDateTime",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -190,17 +175,15 @@ fun AddConcertScreen(
                 )
             }
 
-
-// ⬇️ Pulsanti per selezionare data e ora
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 Button(onClick = { datePickerDialog.show() }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.DateRange, contentDescription = "Seleziona Data", modifier = Modifier.padding(end = 4.dp))
-                    Text("Data")
+                    Icon(Icons.Filled.DateRange, contentDescription = "Select date", modifier = Modifier.padding(end = 4.dp))
+                    Text("Date")
                 }
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = { timePickerDialog.show() }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.Schedule, contentDescription = "Seleziona Ora", modifier = Modifier.padding(end = 4.dp))
-                    Text("Ora")
+                    Icon(Icons.Filled.Schedule, contentDescription = "Select time", modifier = Modifier.padding(end = 4.dp))
+                    Text("Time")
                 }
             }
 
@@ -210,7 +193,6 @@ fun AddConcertScreen(
 
             Button(
                 onClick = { viewModel.onEvent(AddConcertEvent.SaveConcertClicked) },
-                // ... rest of save Button
                 enabled = !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
@@ -220,14 +202,13 @@ fun AddConcertScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Salva Concerto")
+                    Text("Save concert")
                 }
             }
         }
     }
 }
 
-// ... Preview remains the same or can be updated to test initial date/time values ...
 @Preview(showBackground = true, device = "spec:width=360dp,height=640dp,dpi=480")
 @Composable
 fun AddConcertScreenPreviewWithViewModel() {

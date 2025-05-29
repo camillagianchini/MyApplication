@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController // Per il preview
+import androidx.navigation.compose.rememberNavController
 import it.progmob.myconcerts.navigation.ScreenRoute
-import it.progmob.myconcerts.ui.theme.MyApplicationTheme // Assicurati che il nome del tema sia corretto
+import it.progmob.myconcerts.ui.theme.MyApplicationTheme
 
 
 @Composable
@@ -27,13 +27,12 @@ fun HomeScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Benvenuto a MyConcerts!", style = MaterialTheme.typography.headlineMedium)
+        Text("Welcome in MyConcerts!", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = {
-            // Naviga alla route definita per AddConcertScreen
             navController.navigate(ScreenRoute.AddConcert.route)
         }) {
-            Text("Aggiungi un nuovo Concerto")
+            Text("Add upcoming concert")
         }
         // Qui potresti aggiungere una lista dei concerti esistenti, ecc.
     }
@@ -43,7 +42,6 @@ fun HomeScreen(navController: NavController) {
 @Composable
 fun HomeScreenPreview() {
     MyApplicationTheme {
-        // Passa un NavController fittizio per l'anteprima, non eseguirà la navigazione reale.
         HomeScreen(navController = rememberNavController())
     }
 }

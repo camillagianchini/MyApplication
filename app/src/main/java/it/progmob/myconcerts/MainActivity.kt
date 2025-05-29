@@ -12,8 +12,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import it.progmob.myconcerts.screens.AddConcertScreen // Importa le tue schermate
-import it.progmob.myconcerts.screens.HomeScreen      // Importa le tue schermate
+import it.progmob.myconcerts.screens.AddConcertScreen
+import it.progmob.myconcerts.screens.HomeScreen
 import it.progmob.myconcerts.ui.theme.MyApplicationTheme
 import it.progmob.myconcerts.navigation.ScreenRoute
 
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyApplicationTheme { // Applica il tuo tema Compose
+            MyApplicationTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

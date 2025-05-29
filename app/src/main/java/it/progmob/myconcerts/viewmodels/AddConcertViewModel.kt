@@ -17,10 +17,10 @@ import kotlinx.coroutines.launch
 data class AddConcertUiState(
     val artist: String = "",
     val location: String = "",
-    val dateTimestamp: Timestamp? = null, // This will now hold combined date and time
+    val dateTimestamp: Timestamp? = null,
     val artistError: String? = null,
     val locationError: String? = null,
-    val dateError: String? = null, // Error for the combined date/time
+    val dateError: String? = null,
     val isLoading: Boolean = false
 )
 
@@ -28,7 +28,7 @@ sealed class AddConcertEvent {
     data class ArtistChanged(val artist: String) : AddConcertEvent()
     data class LocationChanged(val location: String) : AddConcertEvent()
     data class DateChanged(val date: Timestamp?) :
-        AddConcertEvent() // Receives the combined Timestamp
+        AddConcertEvent()
 
     object SaveConcertClicked : AddConcertEvent()
 }
@@ -60,7 +60,6 @@ class AddConcertViewModel : ViewModel() {
             }
 
             is AddConcertEvent.DateChanged -> {
-                // The incoming 'event.date' Timestamp should now have the correct time set by the UI
                 _uiState.update { it.copy(dateTimestamp = event.date, dateError = null) }
             }
 
@@ -76,14 +75,12 @@ class AddConcertViewModel : ViewModel() {
 
     private fun validateFields(): Boolean {
         var isValid = true
-        // The validation for dateTimestamp now implicitly checks if a valid date AND time have been combined
-        // into a non-null Timestamp. You might add more specific checks if needed (e.g., time is not 00:00 if that's invalid).
         val currentArtistError =
-            if (_uiState.value.artist.isBlank()) "Il nome dell'artista è obbligatorio" else null
+            if (_uiState.value.artist.isBlank()) "artist is required" else null
         val currentLocationError =
-            if (_uiState.value.location.isBlank()) "Il luogo è obbligatorio" else null
+            if (_uiState.value.location.isBlank()) "location is required" else null
         val currentDateError =
-            if (_uiState.value.dateTimestamp == null) "Data e ora sono obbligatorie" else null
+            if (_uiState.value.dateTimestamp == null) "date is required" else null
 
         if (currentArtistError != null) isValid = false
         if (currentLocationError != null) isValid = false
@@ -102,45 +99,41 @@ class AddConcertViewModel : ViewModel() {
     private fun saveConcert() {
         if (!validateFields()) {
             viewModelScope.launch {
-                _effect.emit(AddConcertEffect.ShowSnackbar("Per favore, correggi i campi evidenziati."))
+                _effect.emit(AddConcertEffect.ShowSnackbar("Please correct the highlighted fields."))
             }
             return
         }
 
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            // ... (user not authenticated error handling remains the same) ...
             viewModelScope.launch {
-                _effect.emit(AddConcertEffect.ShowSnackbar("Errore: Utente non autenticato."))
+                _effect.emit(AddConcertEffect.ShowSnackbar( "Error: User not authenticated."))
             }
             return
         }
 
         _uiState.update { it.copy(isLoading = true) }
 
-        // The dateTimestamp already contains the correct time
         val newConcert = Concert(
             artist = _uiState.value.artist.trim(),
             location = _uiState.value.location.trim(),
-            date = _uiState.value.dateTimestamp!!, // This now has date and time
+            date = _uiState.value.dateTimestamp!!,
             userId = currentUser.uid
         )
 
         firestore.collection("concerts")
             .add(newConcert)
-            .addOnSuccessListener { documentReference ->
-                // ... (success handling remains the same) ...
+            .addOnSuccessListener {
                 _uiState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
-                    _effect.emit(AddConcertEffect.ShowSnackbar("Concerto salvato con successo!"))
+                    _effect.emit(AddConcertEffect.ShowSnackbar( "Concert saved successfully!"))
                     _effect.emit(AddConcertEffect.NavigateBack)
                 }
             }
             .addOnFailureListener { e ->
-                // ... (failure handling remains the same) ...
                 _uiState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
-                    _effect.emit(AddConcertEffect.ShowSnackbar("Errore nel salvataggio: ${e.message}"))
+                    _effect.emit(AddConcertEffect.ShowSnackbar("Saving error: ${e.message}"))
                 }
             }
     }
