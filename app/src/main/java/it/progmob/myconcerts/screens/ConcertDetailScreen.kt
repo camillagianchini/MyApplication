@@ -86,7 +86,6 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
         }
     }
 }
-
 private fun calculateRemainingTime(date: Timestamp?): String {
     if (date == null) return "N/A"
 
