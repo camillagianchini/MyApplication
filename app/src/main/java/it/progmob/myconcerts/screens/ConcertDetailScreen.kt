@@ -33,7 +33,6 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
         }
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
