@@ -159,7 +159,6 @@ fun AddConcertScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text("Seleziona un'emoji *", style = MaterialTheme.typography.labelLarge)
             Box {
                 OutlinedTextField(
                     value = uiState.emoji,
@@ -212,6 +211,18 @@ fun AddConcertScreen(
                     Icon(Icons.Filled.Schedule, contentDescription = "Select Time", modifier = Modifier.padding(end = 4.dp))
                     Text("Time")
                 }
+            }
+
+            if (uiState.dateTimestamp != null) {
+                val formattedDateTime = remember(uiState.dateTimestamp) {
+                    dateTimeFormatter.format(uiState.dateTimestamp!!.toDate())
+                }
+
+                Text(
+                    text = "Selected: $formattedDateTime",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))

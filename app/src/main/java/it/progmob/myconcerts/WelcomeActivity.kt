@@ -29,7 +29,7 @@ class WelcomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_welcome)
 
-        val forTesting = true
+        val forTesting = false
 
         if (forTesting) {
             FirebaseAuth.getInstance().signOut()
