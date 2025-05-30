@@ -3,6 +3,7 @@ package it.progmob.myconcerts.screens
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +30,15 @@ import kotlin.math.abs
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.Timestamp
 import androidx.compose.runtime.remember
+
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,45 +94,97 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
 
 @Composable
 fun ConcertItem(concert: Concert, onClick: () -> Unit) {
-    val daysRemaining = remember(concert.date) {
+    val daysRemaining = remember(concert.date.toDate().time) {
         calculateDaysRemaining(concert.date)
     }
+        val isExpired = daysRemaining < 0
 
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = concert.artist,
-                style = MaterialTheme.typography.titleLarge
+        // Stili diversi per concerti scaduti
+        val backgroundColor = if (isExpired) {
+            Brush.verticalGradient(
+                colors = listOf(
+                    Color.LightGray.copy(alpha = 0.6f),
+                    Color.Gray.copy(alpha = 0.4f)
+                )
             )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = concert.location,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = if (daysRemaining >= 0) "$daysRemaining days remaining" else "Concert passed",
-                style = MaterialTheme.typography.labelLarge,
-                color = if (daysRemaining >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+        } else {
+            val baseColor = remember(concert.id) {
+                Color(
+                    red = (concert.id.hashCode() % 128 + 128) / 255f,
+                    green = (concert.id.hashCode() % 96 + 160) / 255f,
+                    blue = (concert.id.hashCode() % 64 + 192) / 255f
+                )
+            }
+            Brush.horizontalGradient(
+                colors = listOf(
+                    baseColor.copy(alpha = 0.8f),
+                    baseColor.copy(alpha = 0.4f)
+                )
             )
         }
+
+        Card(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(backgroundColor)
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = concert.artist.uppercase(Locale.getDefault()),
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.SansSerif,
+                                letterSpacing = 1.sp,
+                                color = if (isExpired) Color.DarkGray else MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = concert.location,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = FontFamily.SansSerif,
+                                color = if (isExpired) Color.DarkGray.copy(alpha = 0.7f)
+                                else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                        )
+                    }
+
+                    Text(
+                        text = if (isExpired) "✗" else "$daysRemaining",
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.SansSerif,
+                            color = if (isExpired) Color.DarkGray else MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+        }
     }
-}
+
 
 private fun calculateDaysRemaining(date: Timestamp): Long {
     val now = Calendar.getInstance()
     val concertDate = Calendar.getInstance().apply { time = date.toDate() }
     val diff = concertDate.timeInMillis - now.timeInMillis
-    return diff / (1000 * 60 * 60 * 24)
+    return diff / (1000 * 60 * 60 * 24) // Differenza in giorni
 }
 
 @Preview(showBackground = true)

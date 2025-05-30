@@ -24,18 +24,21 @@ class HomeViewModel(private val firestore: FirebaseFirestore = FirebaseFirestore
     }
 
     private fun loadConcerts() {
-        concertsListener?.remove()
-
         concertsListener = firestore.collection("concerts")
-            .orderBy("date") // Ordina per data
             .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    // Gestisci l'errore
-                    return@addSnapshotListener
-                }
+                if (error != null) return@addSnapshotListener
 
+                val now = Calendar.getInstance().timeInMillis
                 val concertsList = snapshot?.documents?.mapNotNull { document ->
                     document.toObject(Concert::class.java)?.copy(id = document.id)
+                }?.sortedBy { concert ->
+                    // Metti prima i concerti futuri (ordinati per data)
+                    // e poi quelli passati (ordinati per data inversa)
+                    if (concert.date.toDate().time > now) {
+                        concert.date.toDate().time
+                    } else {
+                        Long.MAX_VALUE - concert.date.toDate().time
+                    }
                 } ?: emptyList()
 
                 _concerts.value = concertsList
