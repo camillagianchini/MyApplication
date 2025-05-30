@@ -11,28 +11,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.Timestamp
 import it.progmob.myconcerts.Concert
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import kotlinx.coroutines.time.delay
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
-
-import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
-    val dateFormatter = remember { SimpleDateFormat("EEEE dd MMM yyyy HH:mm", Locale.getDefault()) }
+    val dateFormatter = remember {
+        SimpleDateFormat("EEEE dd MMM yyyy HH:mm", Locale.getDefault())
+    }
+
     var remainingTime by remember { mutableStateOf(formatCountdown(concert?.date)) }
 
     LaunchedEffect(concert?.date) {
         while (true) {
             remainingTime = formatCountdown(concert?.date)
-            kotlinx.coroutines.delay(1000)
+            delay(1000)
         }
     }
 
@@ -42,16 +41,24 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Concert Details", color = MaterialTheme.colorScheme.onPrimaryContainer) },
+                title = {
+                    Text(
+                        "Concert Details",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 20.sp
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = backgroundColor
                 )
             )
         }
@@ -62,13 +69,13 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                 .padding(padding)
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 48.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 🎉 Emoji in alto
             Box(
                 modifier = Modifier
-                    .size(96.dp)
+                    .size(150.dp)
                     .background(
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
                         shape = CircleShape
@@ -77,45 +84,42 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             ) {
                 Text(
                     text = concert?.emoji ?: "🎵",
-                    style = MaterialTheme.typography.displayLarge
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 56.sp)
                 )
             }
-
 
             // Nome artista
             Text(
                 text = concert?.artist ?: "Unknown",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(bottom = 8.dp)
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 30.sp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             // Data evento
             Text(
                 text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(bottom = 32.dp)
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             // Countdown formattato
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = formatCountdown(concert?.date),
-                    style = MaterialTheme.typography.titleMedium,
+                    text = remainingTime,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier
-                        .padding(vertical = 12.dp, horizontal = 24.dp)
+                        .padding(vertical = 20.dp, horizontal = 32.dp)
                 )
             }
         }
     }
 }
-
 
 @SuppressLint("DefaultLocale")
 private fun formatCountdown(date: Timestamp?): String {
@@ -137,4 +141,3 @@ private fun formatCountdown(date: Timestamp?): String {
         days, hours, minutes, seconds
     )
 }
-
