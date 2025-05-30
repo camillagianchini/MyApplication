@@ -162,34 +162,18 @@ fun AddConcertScreen(
             Box {
                 OutlinedTextField(
                     value = uiState.emoji,
-                    onValueChange = { }, // disabilitato, si seleziona dal menu
-                    readOnly = true,
-                    label = { Text("Emoji") },
+                    onValueChange = { viewModel.onEvent(AddConcertEvent.EmojiChanged(it)) },
+                    label = { Text("Emoji *") },
+                    singleLine = true,
                     isError = uiState.emojiError != null,
-                    trailingIcon = {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Filled.ArrowDropDown, contentDescription = "Apri Emoji Menu")
+                    supportingText = {
+                        uiState.emojiError?.let {
+                            Text(text = it, color = MaterialTheme.colorScheme.error)
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = true }
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
                 )
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    emojiOptions.forEach { emoji ->
-                        DropdownMenuItem(
-                            text = { Text(emoji) },
-                            onClick = {
-                                viewModel.onEvent(AddConcertEvent.EmojiChanged(emoji))
-                                expanded = false
-                            }
-                        )
-                    }
-                }
             }
 
             if (uiState.emojiError != null) {
