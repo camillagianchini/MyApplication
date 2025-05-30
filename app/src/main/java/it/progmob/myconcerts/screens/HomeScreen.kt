@@ -47,14 +47,17 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
 
+    // Define the desired height for the custom top bar
+    val customTopBarHeight = screenHeight / 1.75f // Even bigger, adjust this fraction as needed for your desired "intersection"
+
     Scaffold(
         topBar = {
             // Custom Top App Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(screenHeight / 4) // Changed to 1/4th of the screen height
-                    .clip(RoundedCornerShape(bottomStart = 300.dp, bottomEnd = 300.dp)) // Significantly increased curvature for a half-circle effect
+                    .height(customTopBarHeight) // Use the calculated height
+                    .clip(RoundedCornerShape(bottomStart = 500.dp, bottomEnd = 500.dp)) // Significantly increased curvature for a pronounced half-circle effect
             ) {
                 // Background Image
                 Image(
@@ -84,23 +87,17 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                 Icon(Icons.Filled.Add, contentDescription = "Add concert")
             }
         }
-    ) { padding ->
-        // Important: Use the padding provided by the Scaffold to avoid content overlapping with the custom top bar
-        val topBarHeight = screenHeight / 4 // Adjusted height
-        val adjustedPadding = PaddingValues(
-            top = padding.calculateTopPadding() + topBarHeight, // Add custom top bar height to original top padding
-            bottom = padding.calculateBottomPadding(),
-            start = padding.calculateStartPadding(LocalLayoutDirection.current), // Or use LocalLayoutDirection.current
-            end = padding.calculateEndPadding(LocalLayoutDirection.current) // Or use LocalLayoutDirection.current
-        )
-
+    ) { paddingValues -> // Changed parameter name to avoid confusion with internal padding calculations
+        // The Scaffold's content padding already accounts for the space taken by its topBar.
+        // We need to pass this padding directly to the content (LazyColumn or Column for empty state).
+        // Since we're using a custom top bar that acts as Scaffold's topBar, the padding values
+        // calculated by Scaffold will correctly push the content down.
 
         if (concerts.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = topBarHeight) // Apply padding to account for the custom top bar
-                    .padding(horizontal = 16.dp), // Original horizontal padding
+                    .padding(paddingValues), // Use the padding provided by Scaffold
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -114,9 +111,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    // Apply padding to account for the custom top bar AND original padding from Scaffold
-                    .padding(padding) // This padding comes from the Scaffold
-                    .padding(top = topBarHeight), // Add extra padding for the tall custom TopAppBar
+                    .padding(paddingValues), // Use the padding provided by Scaffold
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), // Padding for items inside LazyColumn
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -231,8 +226,45 @@ private fun calculateDaysRemaining(date: Timestamp): Long {
 @Composable
 fun HomeScreenPreview() {
     MyApplicationTheme {
-        // You might need to mock the ViewModel or provide sample data for the preview
-        // if R.drawable.top_bar_background causes issues in previews without a full build context.
-        HomeScreen(navController = rememberNavController(), viewModel = HomeViewModel())
+        // Create a fake NavController for the preview
+        val navController = rememberNavController()
+        // Create a HomeViewModel (ensure its constructor is preview-friendly)
+        // or pass fake data directly if HomeScreen can accept it
+        val fakeViewModel = HomeViewModel() // Assuming it provides some default/empty state
+        HomeScreen(navController = navController, viewModel = fakeViewModel)
+    }
+}
+
+// OR, if you modify HomeScreen to optionally accept a list:
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    navController: NavController,
+    viewModel: HomeViewModel = viewModel(),
+    previewConcerts: List<Concert>? = null // Optional param for preview
+) {
+    val concerts by viewModel.concerts.collectAsState()
+    val displayConcerts = previewConcerts ?: concerts
+    // ... rest of your HomeScreen code using displayConcerts
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenWithSampleDataPreview() {
+    MyApplicationTheme {
+        val sampleConcerts = listOf(
+            Concert(id = "1", artist = "Preview Artist 1", location = "Preview Location 1", date = Timestamp.now()),
+            Concert(id = "2", artist = "Preview Artist 2", location = "Preview Location 2", date = Timestamp.now())
+        )
+        HomeScreen(
+            navController = rememberNavController(),
+            // You might need a way to make the ViewModel use this previewConcerts
+            // or have HomeScreen directly use previewConcerts when not null.
+            // The simplest for preview is often to pass the data directly if the composable supports it.
+            // For this to work best, HomeScreen would need to be adapted,
+            // or you'd create a simpler preview that doesn't rely on the full ViewModel.
+            viewModel = HomeViewModel(), // This might still be an issue if ViewModel init is problematic
+            previewConcerts = sampleConcerts // If HomeScreen is adapted
+        )
     }
 }
