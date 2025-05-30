@@ -26,7 +26,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
     val dateFormatter = remember { SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()) }
     var remainingTime by remember { mutableStateOf(calculateRemainingTime(concert?.date)) }
 
-    // Aggiorna il countdown ogni secondo
+    // Aggiorna countdown ogni secondo
     LaunchedEffect(concert?.date) {
         while (true) {
             remainingTime = calculateRemainingTime(concert?.date)
@@ -34,7 +34,10 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
         }
     }
 
+    val backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+
     Scaffold(
+        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = { Text("Concert Details") },
@@ -50,38 +53,36 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(32.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Nome artista
             Text(
-                text = concert?.artist ?: "",
+                text = concert?.artist ?: "Unknown Artist",
                 style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
+            // Location
             Text(
-                text = "Location: ${concert?.location ?: "N/A"}",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            Text(
-                text = "Date: ${concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "N/A"}",
+                text = concert?.location ?: "Unknown Location",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
-
+            // Data
             Text(
-                text = "Time remaining:",
-                style = MaterialTheme.typography.titleMedium
+                text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "Unknown Date",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
             Text(
                 text = remainingTime,
-                style = MaterialTheme.typography.displayMedium,
-                modifier = Modifier.padding(top = 8.dp)
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (remainingTime == "Concert has passed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
             )
         }
     }
