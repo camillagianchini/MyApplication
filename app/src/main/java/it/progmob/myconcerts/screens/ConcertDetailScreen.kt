@@ -78,7 +78,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             // 🎉 Emoji
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(140.dp)
                     .background(
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
                         shape = CircleShape
@@ -87,21 +87,21 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             ) {
                 Text(
                     text = concert?.emoji ?: "🎵",
-                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 48.sp)
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp)
                 )
             }
 
             // Artista
             Text(
                 text = concert?.artist ?: "Unknown",
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 26.sp),
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             // Data evento
             Text(
                 text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp),
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 20.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
@@ -113,7 +113,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             ) {
                 Text(
                     text = remainingTime,
-                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 22.sp),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 28.sp),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier
                         .padding(vertical = 12.dp, horizontal = 32.dp)
