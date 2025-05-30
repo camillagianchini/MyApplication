@@ -19,16 +19,18 @@ data class AddConcertUiState(
     val location: String = "",
     val dateTimestamp: Timestamp? = null,
     val artistError: String? = null,
+    val emoji: String = "",
     val locationError: String? = null,
     val dateError: String? = null,
+    val emojiError: String? = null,
     val isLoading: Boolean = false
 )
 
 sealed class AddConcertEvent {
     data class ArtistChanged(val artist: String) : AddConcertEvent()
     data class LocationChanged(val location: String) : AddConcertEvent()
-    data class DateChanged(val date: Timestamp?) :
-        AddConcertEvent()
+    data class DateChanged(val date: Timestamp?) : AddConcertEvent()
+    data class EmojiChanged(val emoji: String) : AddConcertEvent()
 
     object SaveConcertClicked : AddConcertEvent()
 }
@@ -63,6 +65,10 @@ class AddConcertViewModel : ViewModel() {
                 _uiState.update { it.copy(dateTimestamp = event.date, dateError = null) }
             }
 
+            is AddConcertEvent.EmojiChanged -> {
+                _uiState.update { it.copy(emoji = event.emoji, emojiError = null) }     // 👈 aggiunto
+            }
+
             AddConcertEvent.SaveConcertClicked -> {
                 saveConcert()
             }
@@ -81,16 +87,20 @@ class AddConcertViewModel : ViewModel() {
             if (_uiState.value.location.isBlank()) "location is required" else null
         val currentDateError =
             if (_uiState.value.dateTimestamp == null) "date is required" else null
+        val currentEmojiError =
+            if (_uiState.value.emoji.isBlank()) "emoji is required" else null
 
         if (currentArtistError != null) isValid = false
         if (currentLocationError != null) isValid = false
         if (currentDateError != null) isValid = false
+        if (currentEmojiError != null) isValid = false
 
         _uiState.update {
             it.copy(
                 artistError = currentArtistError,
                 locationError = currentLocationError,
-                dateError = currentDateError
+                dateError = currentDateError,
+                emojiError = currentEmojiError
             )
         }
         return isValid
@@ -118,6 +128,7 @@ class AddConcertViewModel : ViewModel() {
             artist = _uiState.value.artist.trim(),
             location = _uiState.value.location.trim(),
             date = _uiState.value.dateTimestamp!!,
+            emoji = _uiState.value.emoji,
             userId = currentUser.uid
         )
 
