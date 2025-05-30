@@ -65,6 +65,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // Verifica l'ultima versione
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0") // O la versione più recente disponibile // Per collectAsS
     implementation("androidx.compose.material3:material3:1.2.1") // Verifica l'ultima versione
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Per icone Material
     implementation("androidx.compose.material:material-icons-core:1.6.7") // Verifica l'ultima versione

@@ -1,5 +1,7 @@
 package it.progmob.myconcerts.screens
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
@@ -39,6 +41,8 @@ fun AddConcertScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val venueSuggestions by viewModel.venueSuggestions.collectAsStateWithLifecycle()
+
     val calendar = Calendar.getInstance()
 
     val dateTimeFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -48,7 +52,6 @@ fun AddConcertScreen(
     var selectedDateCalendar by remember { mutableStateOf<Calendar?>(null) }
     var selectedTimeHour by remember { mutableStateOf<Int?>(null) }
     var selectedTimeMinute by remember { mutableStateOf<Int?>(null) }
-    val emojiOptions = listOf("🎵", "🎸", "🎤", "🎷", "🎹", "🥁")
     var expanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
@@ -145,9 +148,14 @@ fun AddConcertScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            var showSuggestions by remember { mutableStateOf(false) }
+
             OutlinedTextField(
                 value = uiState.location,
-                onValueChange = { viewModel.onEvent(AddConcertEvent.LocationChanged(it)) },
+                onValueChange = {
+                    viewModel.onEvent(AddConcertEvent.LocationChanged(it))
+                    showSuggestions = true
+                },
                 label = { Text("Location *") },
                 singleLine = true,
                 isError = uiState.locationError != null,
@@ -158,6 +166,27 @@ fun AddConcertScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (showSuggestions && uiState.location.isNotBlank()) {
+                val filteredSuggestions = venueSuggestions.filter {
+                    it.contains(uiState.location, ignoreCase = true)
+                }.take(5)
+
+                Column(Modifier.fillMaxWidth()) {
+                    filteredSuggestions.forEach { suggestion ->
+                        Text(
+                            text = suggestion,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.onEvent(AddConcertEvent.LocationChanged(suggestion))
+                                    showSuggestions = false
+                                }
+                                .padding(8.dp)
+                        )
+                    }
+                }
+            }
 
             Box {
                 OutlinedTextField(

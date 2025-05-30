@@ -13,6 +13,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import java.io.BufferedReader
+import java.io.InputStreamReader
+
 
 data class AddConcertUiState(
     val artist: String = "",
@@ -40,7 +49,7 @@ sealed class AddConcertEffect { /* ... remains the same ... */
     object NavigateBack : AddConcertEffect()
 }
 
-class AddConcertViewModel : ViewModel() {
+class AddConcertViewModel(private val app: Application) : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -50,6 +59,34 @@ class AddConcertViewModel : ViewModel() {
 
     private val _effect = MutableSharedFlow<AddConcertEffect>()
     val effect = _effect.asSharedFlow()
+
+    private val _venueSuggestions = MutableStateFlow<List<String>>(emptyList())
+    val venueSuggestions: StateFlow<List<String>> = _venueSuggestions
+
+    init {
+        loadVenuesFromAssets()
+    }
+
+    private fun loadVenuesFromAssets() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val assetManager = app.assets
+                val inputStream = assetManager.open("italian_concert_venues.json")
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                val content = reader.readText()
+                reader.close()
+
+                val jsonArray = JSONArray(content)
+                val venues = mutableListOf<String>()
+                for (i in 0 until jsonArray.length()) {
+                    venues.add(jsonArray.getString(i))
+                }
+                _venueSuggestions.value = venues
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun onEvent(event: AddConcertEvent) {
         when (event) {
@@ -73,10 +110,6 @@ class AddConcertViewModel : ViewModel() {
 
             AddConcertEvent.SaveConcertClicked -> {
                 saveConcert()
-            }
-
-            else -> {
-
             }
         }
     }
@@ -119,7 +152,7 @@ class AddConcertViewModel : ViewModel() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
             viewModelScope.launch {
-                _effect.emit(AddConcertEffect.ShowSnackbar( "Error: User not authenticated."))
+                _effect.emit(AddConcertEffect.ShowSnackbar("Error: User not authenticated."))
             }
             return
         }
@@ -136,11 +169,10 @@ class AddConcertViewModel : ViewModel() {
 
         firestore.collection("concerts")
             .add(newConcert)
-            .addOnSuccessListener { documentReference ->
-                val concertId = documentReference.id
+            .addOnSuccessListener {
                 _uiState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
-                    _effect.emit(AddConcertEffect.ShowSnackbar( "Concert saved successfully!"))
+                    _effect.emit(AddConcertEffect.ShowSnackbar("Concert saved successfully!"))
                     _effect.emit(AddConcertEffect.NavigateBack)
                 }
             }
@@ -152,6 +184,7 @@ class AddConcertViewModel : ViewModel() {
             }
     }
 }
+
 
 private fun Char.isEmoji(): Boolean {
     val type = Character.getType(this)

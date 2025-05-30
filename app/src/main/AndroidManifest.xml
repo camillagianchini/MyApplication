@@ -38,11 +38,10 @@
         tools:replace="android:windowSoftInputMode,android:screenOrientation"
         android:windowSoftInputMode="adjustResize|stateVisible" />
 
-    <activity
-        android:name="com.firebase.ui.auth.ui.idp.AuthMethodPickerActivity"
-        android:screenOrientation="portrait"
-        tools:replace="android:windowSoftInputMode,android:screenOrientation"
-        android:windowSoftInputMode="adjustResize|stateVisible" />
-    />
+        <activity
+            android:name="com.firebase.ui.auth.ui.idp.AuthMethodPickerActivity"
+            android:screenOrientation="portrait"
+            tools:replace="android:windowSoftInputMode,android:screenOrientation"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
     </application>
 </manifest>
