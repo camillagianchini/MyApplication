@@ -1,16 +1,15 @@
 package it.progmob.myconcerts.screens
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
+import android.app.Application
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
@@ -21,8 +20,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Timestamp
@@ -36,36 +36,35 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddConcertScreen(
-    navController: NavController,
-    viewModel: AddConcertViewModel = viewModel()
+    navController: NavController
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val viewModel: AddConcertViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return AddConcertViewModel(context.applicationContext as Application) as T
+            }
+        }
+    )
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val venueSuggestions by viewModel.venueSuggestions.collectAsStateWithLifecycle()
 
     val calendar = Calendar.getInstance()
-
     val dateTimeFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     var selectedDateCalendar by remember { mutableStateOf<Calendar?>(null) }
     var selectedTimeHour by remember { mutableStateOf<Int?>(null) }
     var selectedTimeMinute by remember { mutableStateOf<Int?>(null) }
-    var expanded by remember { mutableStateOf(false) }
+    var showSuggestions by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is AddConcertEffect.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(
-                        message = effect.message,
-                        duration = SnackbarDuration.Short
-                    )
-                }
-                AddConcertEffect.NavigateBack -> {
-                    navController.popBackStack()
-                }
+                is AddConcertEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
+                AddConcertEffect.NavigateBack -> navController.popBackStack()
             }
         }
     }
@@ -86,9 +85,7 @@ fun AddConcertScreen(
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            selectedDateCalendar = Calendar.getInstance().apply {
-                set(year, month, dayOfMonth)
-            }
+            selectedDateCalendar = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
             updateViewModelWithDateTime()
         },
         selectedDateCalendar?.get(Calendar.YEAR) ?: calendar.get(Calendar.YEAR),
@@ -98,8 +95,8 @@ fun AddConcertScreen(
 
     val timePickerDialog = TimePickerDialog(
         context,
-        { _, hourOfDay: Int, minute: Int ->
-            selectedTimeHour = hourOfDay
+        { _, hour: Int, minute: Int ->
+            selectedTimeHour = hour
             selectedTimeMinute = minute
             updateViewModelWithDateTime()
         },
@@ -109,16 +106,13 @@ fun AddConcertScreen(
     )
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Add a New Concert") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -142,13 +136,11 @@ fun AddConcertScreen(
                 isError = uiState.artistError != null,
                 supportingText = {
                     uiState.artistError?.let {
-                        Text(text = it, color = MaterialTheme.colorScheme.error)
+                        Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             )
-
-            var showSuggestions by remember { mutableStateOf(false) }
 
             OutlinedTextField(
                 value = uiState.location,
@@ -161,21 +153,21 @@ fun AddConcertScreen(
                 isError = uiState.locationError != null,
                 supportingText = {
                     uiState.locationError?.let {
-                        Text(text = it, color = MaterialTheme.colorScheme.error)
+                        Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             )
 
             if (showSuggestions && uiState.location.isNotBlank()) {
-                val filteredSuggestions = venueSuggestions.filter {
+                val filtered = venueSuggestions.filter {
                     it.contains(uiState.location, ignoreCase = true)
                 }.take(5)
 
                 Column(Modifier.fillMaxWidth()) {
-                    filteredSuggestions.forEach { suggestion ->
+                    filtered.forEach { suggestion ->
                         Text(
-                            text = suggestion,
+                            suggestion,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
@@ -188,63 +180,43 @@ fun AddConcertScreen(
                 }
             }
 
-            Box {
-                OutlinedTextField(
-                    value = uiState.emoji,
-                    onValueChange = { viewModel.onEvent(AddConcertEvent.EmojiChanged(it)) },
-                    label = { Text("Emoji *") },
-                    singleLine = true,
-                    isError = uiState.emojiError != null,
-                    supportingText = {
-                        uiState.emojiError?.let {
-                            Text(text = it, color = MaterialTheme.colorScheme.error)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
-                )
-            }
-
-            if (uiState.emojiError != null) {
-                Text(
-                    text = uiState.emojiError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
+            OutlinedTextField(
+                value = uiState.emoji,
+                onValueChange = { viewModel.onEvent(AddConcertEvent.EmojiChanged(it)) },
+                label = { Text("Emoji *") },
+                singleLine = true,
+                isError = uiState.emojiError != null,
+                supportingText = {
+                    uiState.emojiError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
+            )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 Button(onClick = { datePickerDialog.show() }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.DateRange, contentDescription = "Select Date", modifier = Modifier.padding(end = 4.dp))
+                    Icon(Icons.Filled.DateRange, contentDescription = "Select Date", Modifier.padding(end = 4.dp))
                     Text("Date")
                 }
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = { timePickerDialog.show() }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.Schedule, contentDescription = "Select Time", modifier = Modifier.padding(end = 4.dp))
+                    Icon(Icons.Filled.Schedule, contentDescription = "Select Time", Modifier.padding(end = 4.dp))
                     Text("Time")
                 }
             }
 
-            if (uiState.dateTimestamp != null) {
-                val formattedDateTime = remember(uiState.dateTimestamp) {
-                    dateTimeFormatter.format(uiState.dateTimestamp!!.toDate())
-                }
-
-                Text(
-                    text = "Selected: $formattedDateTime",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+            uiState.dateTimestamp?.let {
+                val formatted = remember(it) { dateTimeFormatter.format(it.toDate()) }
+                Text("Selected: $formatted", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 16.dp))
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
 
             Button(
                 onClick = { viewModel.onEvent(AddConcertEvent.SaveConcertClicked) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {

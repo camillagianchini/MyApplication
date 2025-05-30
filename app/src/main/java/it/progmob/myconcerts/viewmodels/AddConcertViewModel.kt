@@ -1,27 +1,18 @@
 package it.progmob.myconcerts.viewmodels
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import it.progmob.myconcerts.Concert
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
-
 
 data class AddConcertUiState(
     val artist: String = "",
@@ -40,16 +31,15 @@ sealed class AddConcertEvent {
     data class LocationChanged(val location: String) : AddConcertEvent()
     data class DateChanged(val date: Timestamp?) : AddConcertEvent()
     data class EmojiChanged(val emoji: String) : AddConcertEvent()
-
     object SaveConcertClicked : AddConcertEvent()
 }
 
-sealed class AddConcertEffect { /* ... remains the same ... */
+sealed class AddConcertEffect {
     data class ShowSnackbar(val message: String) : AddConcertEffect()
     object NavigateBack : AddConcertEffect()
 }
 
-class AddConcertViewModel(private val app: Application) : ViewModel() {
+class AddConcertViewModel(application: Application) : AndroidViewModel(application) {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -70,7 +60,7 @@ class AddConcertViewModel(private val app: Application) : ViewModel() {
     private fun loadVenuesFromAssets() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val assetManager = app.assets
+                val assetManager = getApplication<Application>().assets
                 val inputStream = assetManager.open("italian_concert_venues.json")
                 val reader = BufferedReader(InputStreamReader(inputStream))
                 val content = reader.readText()
@@ -90,54 +80,42 @@ class AddConcertViewModel(private val app: Application) : ViewModel() {
 
     fun onEvent(event: AddConcertEvent) {
         when (event) {
-            is AddConcertEvent.ArtistChanged -> {
+            is AddConcertEvent.ArtistChanged ->
                 _uiState.update { it.copy(artist = event.artist, artistError = null) }
-            }
 
-            is AddConcertEvent.LocationChanged -> {
+            is AddConcertEvent.LocationChanged ->
                 _uiState.update { it.copy(location = event.location, locationError = null) }
-            }
 
-            is AddConcertEvent.DateChanged -> {
+            is AddConcertEvent.DateChanged ->
                 _uiState.update { it.copy(dateTimestamp = event.date, dateError = null) }
-            }
 
             is AddConcertEvent.EmojiChanged -> {
                 val onlyEmojis = event.emoji.filter { it.isEmoji() }
                 val firstEmoji = onlyEmojis.take(1)
-                _uiState.update { it.copy(emoji = onlyEmojis, emojiError = null) }
+                _uiState.update { it.copy(emoji = firstEmoji, emojiError = null) }
             }
 
-            AddConcertEvent.SaveConcertClicked -> {
-                saveConcert()
-            }
+            AddConcertEvent.SaveConcertClicked -> saveConcert()
         }
     }
 
     private fun validateFields(): Boolean {
-        var isValid = true
-        val currentArtistError =
-            if (_uiState.value.artist.isBlank()) "artist is required" else null
-        val currentLocationError =
-            if (_uiState.value.location.isBlank()) "location is required" else null
-        val currentDateError =
-            if (_uiState.value.dateTimestamp == null) "date is required" else null
-        val currentEmojiError =
-            if (_uiState.value.emoji.isBlank()) "emoji is required" else null
+        val artistError = if (_uiState.value.artist.isBlank()) "artist is required" else null
+        val locationError = if (_uiState.value.location.isBlank()) "location is required" else null
+        val dateError = if (_uiState.value.dateTimestamp == null) "date is required" else null
+        val emojiError = if (_uiState.value.emoji.isBlank()) "emoji is required" else null
 
-        if (currentArtistError != null) isValid = false
-        if (currentLocationError != null) isValid = false
-        if (currentDateError != null) isValid = false
-        if (currentEmojiError != null) isValid = false
+        val isValid = listOf(artistError, locationError, dateError, emojiError).all { it == null }
 
         _uiState.update {
             it.copy(
-                artistError = currentArtistError,
-                locationError = currentLocationError,
-                dateError = currentDateError,
-                emojiError = currentEmojiError
+                artistError = artistError,
+                locationError = locationError,
+                dateError = dateError,
+                emojiError = emojiError
             )
         }
+
         return isValid
     }
 
@@ -184,7 +162,6 @@ class AddConcertViewModel(private val app: Application) : ViewModel() {
             }
     }
 }
-
 
 private fun Char.isEmoji(): Boolean {
     val type = Character.getType(this)
