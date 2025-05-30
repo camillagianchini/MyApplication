@@ -1,55 +1,83 @@
 package it.progmob.myconcerts.screens
 
-import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Timestamp
 import it.progmob.myconcerts.Concert
+import it.progmob.myconcerts.R // Import R class for resources
 import it.progmob.myconcerts.navigation.ScreenRoute
 import it.progmob.myconcerts.ui.theme.MyApplicationTheme
 import it.progmob.myconcerts.viewmodels.HomeViewModel
-import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.Timestamp
-import androidx.compose.runtime.remember
-
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.shape.RoundedCornerShape
-import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewModel()) {
     val concerts by viewModel.concerts.collectAsState()
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("My Concerts") }
-            )
+            // Custom Top App Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(screenHeight / 4) // Changed to 1/4th of the screen height
+                    .clip(RoundedCornerShape(bottomStart = 300.dp, bottomEnd = 300.dp)) // Significantly increased curvature for a half-circle effect
+            ) {
+                // Background Image
+                Image(
+                    painter = painterResource(id = R.drawable.top_bar_background), // Your image resource
+                    contentDescription = "Top bar background",
+                    contentScale = ContentScale.Crop, // Crop to fill the bounds
+                    modifier = Modifier.fillMaxSize()
+                )
+                // Title Text
+                Text(
+                    text = "Welcome to MyConcerts",
+                    style = MaterialTheme.typography.headlineMedium.copy( // Larger size
+                        fontWeight = FontWeight.Bold, // Bolder font
+                        fontFamily = FontFamily.SansSerif,
+                        color = Color.White // Set text color that contrasts with your image
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentHeight(Alignment.CenterVertically) // Center text vertically
+                        .padding(16.dp)
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate(ScreenRoute.AddConcert.route) }) {
@@ -57,11 +85,22 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
             }
         }
     ) { padding ->
+        // Important: Use the padding provided by the Scaffold to avoid content overlapping with the custom top bar
+        val topBarHeight = screenHeight / 4 // Adjusted height
+        val adjustedPadding = PaddingValues(
+            top = padding.calculateTopPadding() + topBarHeight, // Add custom top bar height to original top padding
+            bottom = padding.calculateBottomPadding(),
+            start = padding.calculateStartPadding(LocalLayoutDirection.current), // Or use LocalLayoutDirection.current
+            end = padding.calculateEndPadding(LocalLayoutDirection.current) // Or use LocalLayoutDirection.current
+        )
+
+
         if (concerts.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .padding(top = topBarHeight) // Apply padding to account for the custom top bar
+                    .padding(horizontal = 16.dp), // Original horizontal padding
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -75,8 +114,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp),
+                    // Apply padding to account for the custom top bar AND original padding from Scaffold
+                    .padding(padding) // This padding comes from the Scaffold
+                    .padding(top = topBarHeight), // Add extra padding for the tall custom TopAppBar
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), // Padding for items inside LazyColumn
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(concerts) { concert ->
@@ -97,87 +138,86 @@ fun ConcertItem(concert: Concert, onClick: () -> Unit) {
     val daysRemaining = remember(concert.date.toDate().time) {
         calculateDaysRemaining(concert.date)
     }
-        val isExpired = daysRemaining < 0
+    val isExpired = daysRemaining < 0
 
-        // Stili diversi per concerti scaduti
-        val backgroundColor = if (isExpired) {
-            Brush.verticalGradient(
-                colors = listOf(
-                    Color.LightGray.copy(alpha = 0.6f),
-                    Color.Gray.copy(alpha = 0.4f)
-                )
+    val backgroundColor = if (isExpired) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.LightGray.copy(alpha = 0.6f),
+                Color.Gray.copy(alpha = 0.4f)
             )
-        } else {
-            val baseColor = remember(concert.id) {
-                Color(
-                    red = (concert.id.hashCode() % 128 + 128) / 255f,
-                    green = (concert.id.hashCode() % 96 + 160) / 255f,
-                    blue = (concert.id.hashCode() % 64 + 192) / 255f
-                )
-            }
-            Brush.horizontalGradient(
-                colors = listOf(
-                    baseColor.copy(alpha = 0.8f),
-                    baseColor.copy(alpha = 0.4f)
-                )
+        )
+    } else {
+        val baseColor = remember(concert.id) {
+            Color(
+                red = (concert.id.hashCode() % 128 + 128) / 255f,
+                green = (concert.id.hashCode() % 96 + 160) / 255f,
+                blue = (concert.id.hashCode() % 64 + 192) / 255f
             )
         }
+        Brush.horizontalGradient(
+            colors = listOf(
+                baseColor.copy(alpha = 0.8f),
+                baseColor.copy(alpha = 0.4f)
+            )
+        )
+    }
 
-        Card(
-            onClick = onClick,
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp), // Keep this padding for card appearance
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            shape = RoundedCornerShape(16.dp)
+                .background(backgroundColor)
+                .padding(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(backgroundColor)
-                    .padding(16.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                Column(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = concert.artist.uppercase(Locale.getDefault()),
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.SansSerif,
-                                letterSpacing = 1.sp,
-                                color = if (isExpired) Color.DarkGray else MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = concert.location,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.SansSerif,
-                                color = if (isExpired) Color.DarkGray.copy(alpha = 0.7f)
-                                else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
-                        )
-                    }
-
                     Text(
-                        text = if (isExpired) "✗" else "$daysRemaining",
-                        style = MaterialTheme.typography.displaySmall.copy(
+                        text = concert.artist.uppercase(Locale.getDefault()),
+                        style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.SansSerif,
+                            letterSpacing = 1.sp,
                             color = if (isExpired) Color.DarkGray else MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        modifier = Modifier.padding(start = 8.dp)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = concert.location,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.SansSerif,
+                            color = if (isExpired) Color.DarkGray.copy(alpha = 0.7f)
+                            else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
                     )
                 }
+
+                Text(
+                    text = if (isExpired) "✗" else "$daysRemaining",
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif,
+                        color = if (isExpired) Color.DarkGray else MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
     }
+}
 
 
 private fun calculateDaysRemaining(date: Timestamp): Long {
@@ -191,6 +231,8 @@ private fun calculateDaysRemaining(date: Timestamp): Long {
 @Composable
 fun HomeScreenPreview() {
     MyApplicationTheme {
-        HomeScreen(navController = rememberNavController())
+        // You might need to mock the ViewModel or provide sample data for the preview
+        // if R.drawable.top_bar_background causes issues in previews without a full build context.
+        HomeScreen(navController = rememberNavController(), viewModel = HomeViewModel())
     }
 }
