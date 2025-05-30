@@ -69,15 +69,16 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 48.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🎉 Emoji in alto
+
+
+            // 🎉 Emoji
             Box(
                 modifier = Modifier
-                    .size(150.dp)
+                    .size(100.dp)
                     .background(
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
                         shape = CircleShape
@@ -86,37 +87,36 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             ) {
                 Text(
                     text = concert?.emoji ?: "🎵",
-                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 56.sp)
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 48.sp)
                 )
             }
 
-            // Nome artista
+            // Artista
             Text(
                 text = concert?.artist ?: "Unknown",
-                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 30.sp),
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 26.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             // Data evento
             Text(
                 text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
-            // Countdown formattato
+            // Countdown
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
+                modifier = Modifier.padding(top = 16.dp)
             ) {
                 Text(
                     text = remainingTime,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 22.sp),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier
-                        .padding(vertical = 20.dp, horizontal = 32.dp)
+                        .padding(vertical = 12.dp, horizontal = 32.dp)
                 )
             }
         }

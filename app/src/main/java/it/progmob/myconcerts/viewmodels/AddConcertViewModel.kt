@@ -66,7 +66,9 @@ class AddConcertViewModel : ViewModel() {
             }
 
             is AddConcertEvent.EmojiChanged -> {
-                _uiState.update { it.copy(emoji = event.emoji, emojiError = null) }     // 👈 aggiunto
+                val onlyEmojis = event.emoji.filter { it.isEmoji() }
+                val firstEmoji = onlyEmojis.take(1)
+                _uiState.update { it.copy(emoji = onlyEmojis, emojiError = null) }
             }
 
             AddConcertEvent.SaveConcertClicked -> {
@@ -149,4 +151,9 @@ class AddConcertViewModel : ViewModel() {
                 }
             }
     }
+}
+
+private fun Char.isEmoji(): Boolean {
+    val type = Character.getType(this)
+    return type == Character.SURROGATE.toInt() || type == Character.OTHER_SYMBOL.toInt()
 }
