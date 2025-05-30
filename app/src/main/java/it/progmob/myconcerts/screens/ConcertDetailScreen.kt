@@ -1,6 +1,9 @@
 package it.progmob.myconcerts.screens
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -23,29 +26,33 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
-    val dateFormatter = remember { SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()) }
-    var remainingTime by remember { mutableStateOf(calculateRemainingTime(concert?.date)) }
+    val dateFormatter = remember { SimpleDateFormat("EEEE dd MMM yyyy HH:mm", Locale.getDefault()) }
+    var remainingTime by remember { mutableStateOf(formatCountdown(concert?.date)) }
 
-    // Aggiorna countdown ogni secondo
     LaunchedEffect(concert?.date) {
         while (true) {
-            remainingTime = calculateRemainingTime(concert?.date)
+            remainingTime = formatCountdown(concert?.date)
             kotlinx.coroutines.delay(1000)
         }
     }
 
-    val backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
 
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Concert Details") },
+                title = { Text("Concert Details", color = MaterialTheme.colorScheme.onPrimaryContainer) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = backgroundColor,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
         }
     ) { padding ->
@@ -53,56 +60,81 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(32.dp),
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 48.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 🎉 Emoji in alto
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = concert?.emoji ?: "🎵",
+                    style = MaterialTheme.typography.displayLarge
+                )
+            }
+
+
             // Nome artista
             Text(
-                text = concert?.artist ?: "Unknown Artist",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            // Location
-            Text(
-                text = concert?.location ?: "Unknown Location",
-                style = MaterialTheme.typography.bodyLarge,
+                text = concert?.artist ?: "Unknown",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Data
+            // Data evento
             Text(
-                text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "Unknown Date",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 24.dp)
+                text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            Text(
-                text = remainingTime,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (remainingTime == "Concert has passed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            )
+            // Countdown formattato
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            ) {
+                Text(
+                    text = formatCountdown(concert?.date),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .padding(vertical = 12.dp, horizontal = 24.dp)
+                )
+            }
         }
     }
 }
 
 
-private fun calculateRemainingTime(date: Timestamp?): String {
-    if (date == null) return "N/A"
+@SuppressLint("DefaultLocale")
+private fun formatCountdown(date: Timestamp?): String {
+    if (date == null) return "-- : -- : -- : --"
 
     val now = Calendar.getInstance()
     val concertDate = Calendar.getInstance().apply { time = date.toDate() }
 
     val diff = concertDate.timeInMillis - now.timeInMillis
-
-    if (diff <= 0) return "Concert has passed"
+    if (diff <= 0) return "00 : 00 : 00 : 00"
 
     val seconds = (diff / 1000) % 60
     val minutes = (diff / (1000 * 60)) % 60
     val hours = (diff / (1000 * 60 * 60)) % 24
     val days = diff / (1000 * 60 * 60 * 24)
 
-    return "$days days, $hours hours, $minutes minutes, $seconds seconds"
+    return String.format(
+        "%02d : %02d : %02d : %02d",
+        days, hours, minutes, seconds
+    )
 }
+
