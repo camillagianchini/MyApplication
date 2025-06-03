@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Timestamp
 import it.progmob.myconcerts.Concert
-import it.progmob.myconcerts.R // Import R class for resources
+import it.progmob.myconcerts.R
 import it.progmob.myconcerts.navigation.ScreenRoute
 import it.progmob.myconcerts.ui.theme.MyApplicationTheme
 import it.progmob.myconcerts.viewmodels.HomeViewModel
@@ -48,7 +48,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
     val screenHeight = configuration.screenHeightDp.dp
 
     // Define the desired height for the custom top bar
-    val customTopBarHeight = screenHeight / 1.75f // Even bigger, adjust this fraction as needed for your desired "intersection"
+    // Based on your drawing, it needs to be significantly larger,
+    // taking up almost half or more of the screen height.
+    val customTopBarHeight = screenHeight / 4f // Adjusted fraction to make it very large,
+    // as per your drawing, intersecting significantly.
 
     Scaffold(
         topBar = {
@@ -56,8 +59,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(customTopBarHeight) // Use the calculated height
-                    .clip(RoundedCornerShape(bottomStart = 500.dp, bottomEnd = 500.dp)) // Significantly increased curvature for a pronounced half-circle effect
+                    .height(customTopBarHeight) // Use the greatly increased height
+                    .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp ,bottomStart = 200.dp, bottomEnd = 200.dp)) // Maintain strong curvature
             ) {
                 // Background Image
                 Image(
@@ -87,41 +90,48 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                 Icon(Icons.Filled.Add, contentDescription = "Add concert")
             }
         }
-    ) { paddingValues -> // Changed parameter name to avoid confusion with internal padding calculations
-        // The Scaffold's content padding already accounts for the space taken by its topBar.
-        // We need to pass this padding directly to the content (LazyColumn or Column for empty state).
-        // Since we're using a custom top bar that acts as Scaffold's topBar, the padding values
-        // calculated by Scaffold will correctly push the content down.
+    ) { paddingValues ->
+        // Create a Box to layer the background image behind the content
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.sfondo_lista), // Your new background image
+                contentDescription = "Background image",
+                contentScale = ContentScale.Crop, // Crop to fill the bounds
+                modifier = Modifier.fillMaxSize()
+            )
 
-        if (concerts.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues), // Use the padding provided by Scaffold
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "No concerts yet",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues), // Use the padding provided by Scaffold
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), // Padding for items inside LazyColumn
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(concerts) { concert ->
-                    ConcertItem(
-                        concert = concert,
-                        onClick = {
-                            navController.navigate(ScreenRoute.ConcertDetail.createRoute(concert.id))
-                        }
+            // Content of the Scaffold, now layered on top of the background image
+            if (concerts.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues), // Use the padding provided by Scaffold
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "No concerts yet",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = Color.White // Adjust text color for better visibility on background
                     )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues), // Use the padding provided by Scaffold
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), // Padding for items inside LazyColumn
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(concerts) { concert ->
+                        ConcertItem(
+                            concert = concert,
+                            onClick = {
+                                navController.navigate(ScreenRoute.ConcertDetail.createRoute(concert.id))
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -222,9 +232,10 @@ private fun calculateDaysRemaining(date: Timestamp): Long {
     return diff / (1000 * 60 * 60 * 24) // Differenza in giorni
 }
 
+
 @Preview(showBackground = true)
 @Composable
-fun HomeScreenPreview() {
+internal fun HomeScreenPreview() {
     MyApplicationTheme {
         // Create a fake NavController for the preview
         val navController = rememberNavController()
