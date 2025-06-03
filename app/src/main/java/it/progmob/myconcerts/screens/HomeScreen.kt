@@ -48,7 +48,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
     val screenHeight = configuration.screenHeightDp.dp
 
     // Define the desired height for the custom top bar
-    val customTopBarHeight = screenHeight / 1.75f // Even bigger, adjust this fraction as needed for your desired "intersection"
+    val customTopBarHeight = screenHeight / 4f // Even bigger, adjust this fraction as needed for your desired "intersection"
 
     Scaffold(
         topBar = {

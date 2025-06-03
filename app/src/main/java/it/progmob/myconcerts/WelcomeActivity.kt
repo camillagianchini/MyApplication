@@ -2,12 +2,8 @@ package it.progmob.myconcerts
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
@@ -17,7 +13,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class WelcomeActivity : AppCompatActivity() {
+class WelcomeActivity : ComponentActivity() {
 
     private val signInLauncher = registerForActivityResult(
         FirebaseAuthUIActivityResultContract(),
@@ -26,36 +22,29 @@ class WelcomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_welcome)
 
-        val forTesting = false
+        val forTesting = true
 
         if (forTesting) {
             FirebaseAuth.getInstance().signOut()
         }
 
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            // Utente già autenticato → controllo Firestore
-            checkUserInFirestore(user)
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            checkUserInFirestore(currentUser)
         } else {
-            // Lancia il flusso di accesso (AuthUI)
-            Handler(Looper.getMainLooper()).post {
-                launchSignInFlow()
-            }
+            launchSignInFlow()
         }
     }
 
     private fun launchSignInFlow() {
         val providers = listOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
-            AuthUI.IdpConfig.GoogleBuilder().build(),
+            AuthUI.IdpConfig.GoogleBuilder().build()
         )
 
         val intent = AuthUI.getInstance()
             .createSignInIntentBuilder()
-            .setTheme(R.style.FirebaseAuthTheme)
             .setAvailableProviders(providers)
             .build()
 
@@ -63,13 +52,13 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
-        //val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
                 checkUserInFirestore(user)
             }
         } else {
+            Toast.makeText(this, "Login fallito. Riprova.", Toast.LENGTH_SHORT).show()
             launchSignInFlow()
         }
     }
@@ -77,36 +66,28 @@ class WelcomeActivity : AppCompatActivity() {
     private fun checkUserInFirestore(user: FirebaseUser) {
         val db = Firebase.firestore
         val uid = user.uid
-        val userDocRef = db.collection("users").document(uid)
+        val userRef = db.collection("users").document(uid)
 
-        userDocRef.get().addOnSuccessListener { document ->
+        userRef.get().addOnSuccessListener { document ->
             if (!document.exists()) {
                 val newUser = hashMapOf(
                     "name" to (user.displayName ?: "unknown"),
                     "email" to user.email,
-                    "registration date" to Timestamp.now()
+                    "registrationDate" to Timestamp.now()
                 )
-                userDocRef.set(newUser)
-                    .addOnSuccessListener {
-                        navigateToMainActivity(user)
-                    }
-                    .addOnFailureListener {
-                        navigateToMainActivity(user)
-                    }
+                userRef.set(newUser)
+                    .addOnSuccessListener { navigateToMainActivity() }
+                    .addOnFailureListener { navigateToMainActivity() }
             } else {
-                navigateToMainActivity(user)
+                navigateToMainActivity()
             }
-        }.addOnFailureListener { e ->
-            Log.e("Firestore", "Error Firestore", e)
-            Toast.makeText(this, "Error checking user in Firestore", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Errore durante il login", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun navigateToMainActivity(user: FirebaseUser?) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("user_name", user?.displayName)
-        intent.putExtra("user_uid", user?.uid)
-        startActivity(intent)
+    private fun navigateToMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
 }

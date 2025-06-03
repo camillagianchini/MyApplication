@@ -3,6 +3,7 @@ package it.progmob.myconcerts.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import it.progmob.myconcerts.Concert
@@ -24,16 +25,17 @@ class HomeViewModel(private val firestore: FirebaseFirestore = FirebaseFirestore
     }
 
     private fun loadConcerts() {
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         concertsListener = firestore.collection("concerts")
+            .whereEqualTo("userId", currentUserId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
 
                 val now = Calendar.getInstance().timeInMillis
-                val concertsList = snapshot?.documents?.mapNotNull { document ->
-                    document.toObject(Concert::class.java)?.copy(id = document.id)
+                val concertsList = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(Concert::class.java)?.copy(id = doc.id)
                 }?.sortedBy { concert ->
-                    // Metti prima i concerti futuri (ordinati per data)
-                    // e poi quelli passati (ordinati per data inversa)
                     if (concert.date.toDate().time > now) {
                         concert.date.toDate().time
                     } else {
@@ -44,6 +46,7 @@ class HomeViewModel(private val firestore: FirebaseFirestore = FirebaseFirestore
                 _concerts.value = concertsList
             }
     }
+
 
     override fun onCleared() {
         super.onCleared()
