@@ -258,11 +258,6 @@ fun HomeScreenWithSampleDataPreview() {
         )
         HomeScreen(
             navController = rememberNavController(),
-            // You might need a way to make the ViewModel use this previewConcerts
-            // or have HomeScreen directly use previewConcerts when not null.
-            // The simplest for preview is often to pass the data directly if the composable supports it.
-            // For this to work best, HomeScreen would need to be adapted,
-            // or you'd create a simpler preview that doesn't rely on the full ViewModel.
             viewModel = HomeViewModel(), // This might still be an issue if ViewModel init is problematic
             previewConcerts = sampleConcerts // If HomeScreen is adapted
         )
