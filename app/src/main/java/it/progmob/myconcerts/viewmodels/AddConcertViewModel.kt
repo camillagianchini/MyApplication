@@ -1,6 +1,7 @@
 package it.progmob.myconcerts.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
@@ -157,6 +158,7 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(isLoading = true) }
 
         val newConcert = Concert(
+            id = "",
             artist = _uiState.value.artist.trim(),
             location = _uiState.value.location.trim(),
             date = _uiState.value.dateTimestamp!!,
@@ -167,8 +169,10 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
 
         firestore.collection("concerts")
             .add(newConcert)
-            .addOnSuccessListener {
-                scheduleNotification(newConcert) // ✅ pianificazione notifica
+            .addOnSuccessListener { docRef ->
+                val savedConcert = newConcert.copy(id = docRef.id)
+                scheduleNotification(savedConcert)
+
                 _uiState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
                     _effect.emit(AddConcertEffect.ShowSnackbar("Concert saved successfully!"))
@@ -192,7 +196,8 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
         if (delay > 0) {
             val data = workDataOf(
                 "title" to "🎤 ${concert.artist}",
-                "message" to "Your concert at ${concert.location} is in 24 hours!"
+                "message" to "Your concert at ${concert.location} is in 24 hours!",
+                "concertId" to (concert.id ?: "") // assicurati che `id` sia disponibile
             )
 
             val request = OneTimeWorkRequestBuilder<NotificationWorker>()
@@ -201,8 +206,11 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
                 .build()
 
             WorkManager.getInstance(getApplication()).enqueue(request)
+            Log.d("🔔Notification", "Work request enqueued with delay: $delay ms")
+
         }
     }
+
 
     private fun Char.isEmoji(): Boolean {
         val type = Character.getType(this)

@@ -1,11 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="it.progmob.myconcerts">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -29,21 +27,29 @@
             </intent-filter>
         </activity>
 
-        <!-- Changed to your package -->
+        <!--  Changed to your package  -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
             android:theme="@style/Theme.MyApplication" />
-    <activity
-        android:name="com.firebase.ui.auth.ui.email.EmailActivity"
-        android:screenOrientation="portrait"
-        tools:replace="android:windowSoftInputMode,android:screenOrientation"
-        android:windowSoftInputMode="adjustResize|stateVisible" />
+
+        <activity
+            android:name="com.firebase.ui.auth.ui.email.EmailActivity"
+            android:screenOrientation="portrait"
+            tools:replace="android:windowSoftInputMode,android:screenOrientation"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
 
         <activity
             android:name="com.firebase.ui.auth.ui.idp.AuthMethodPickerActivity"
             android:screenOrientation="portrait"
             tools:replace="android:windowSoftInputMode,android:screenOrientation"
             android:windowSoftInputMode="adjustResize|stateVisible" />
+
+        <!-- ✅ WorkManager initialization provider -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge" />
     </application>
 </manifest>
