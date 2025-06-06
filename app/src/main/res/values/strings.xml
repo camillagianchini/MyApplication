@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyApplication</string>
+    <string name="app_name">MyConcerts</string>
     <string name="benvenuto_nella_schermata_di_login">Benvenuto nella schermata di login</string>
     <string name="nome">Nome</string>
     <string name="date">Date</string>
