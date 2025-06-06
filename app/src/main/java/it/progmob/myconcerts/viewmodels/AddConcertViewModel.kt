@@ -90,10 +90,22 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
                 _uiState.update { it.copy(dateTimestamp = event.date, dateError = null) }
 
             is AddConcertEvent.EmojiChanged -> {
-                val onlyEmojis = event.emoji.filter { it.isEmoji() }
-                val firstEmoji = onlyEmojis.take(1)
-                _uiState.update { it.copy(emoji = firstEmoji, emojiError = null) }
+                val emoji = event.emoji
+                val codePoints = emoji.codePoints().toArray()
+
+                val emojiString = try {
+                    if (codePoints.isNotEmpty()) {
+                        String(codePoints, 0, codePoints.size.coerceAtMost(8))
+
+                    } else ""
+                } catch (e: Exception) {
+                    ""
+                }
+                android.util.Log.d("EmojiInput", "emoji: '$emojiString' from raw input '${event.emoji}'")
+
+                _uiState.update { it.copy(emoji = emojiString, emojiError = null) }
             }
+
 
             AddConcertEvent.SaveConcertClicked -> saveConcert()
         }
