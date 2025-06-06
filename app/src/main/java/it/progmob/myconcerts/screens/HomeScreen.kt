@@ -175,8 +175,10 @@ fun ConcertItem(concert: Concert, onClick: () -> Unit) {
             ) {
                 Text(
                     text = concert.emoji ?: "🎵",
-                    fontSize = 32.sp,
-                    modifier = Modifier.padding(end = 12.dp)
+                    fontSize = 28.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 12.dp)
                 )
 
 

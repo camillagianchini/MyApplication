@@ -63,6 +63,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.firebaseui:firebase-ui-auth:9.0.0")
+    implementation ("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // Verifica l'ultima versione
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0") // O la versione più recente disponibile // Per collectAsS
     implementation("androidx.compose.material3:material3:1.2.1") // Verifica l'ultima versione

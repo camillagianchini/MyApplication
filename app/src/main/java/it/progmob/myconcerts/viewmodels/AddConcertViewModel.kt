@@ -3,16 +3,19 @@ package it.progmob.myconcerts.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import it.progmob.myconcerts.Concert
+import it.progmob.myconcerts.notifications.NotificationWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
 
 data class AddConcertUiState(
     val artist: String = "",
@@ -34,7 +37,6 @@ sealed class AddConcertEvent {
     data class DateChanged(val date: Timestamp?) : AddConcertEvent()
     data class EmojiChanged(val emoji: String) : AddConcertEvent()
     data class ColorChanged(val colorHex: String) : AddConcertEvent()
-
     object SaveConcertClicked : AddConcertEvent()
 }
 
@@ -93,9 +95,8 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
             is AddConcertEvent.DateChanged ->
                 _uiState.update { it.copy(dateTimestamp = event.date, dateError = null) }
 
-            is AddConcertEvent.ColorChanged -> {
+            is AddConcertEvent.ColorChanged ->
                 _uiState.update { it.copy(colorHex = event.colorHex, colorError = null) }
-            }
 
             is AddConcertEvent.EmojiChanged -> {
                 val emoji = event.emoji
@@ -104,16 +105,14 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
                 val emojiString = try {
                     if (codePoints.isNotEmpty()) {
                         String(codePoints, 0, codePoints.size.coerceAtMost(8))
-
                     } else ""
                 } catch (e: Exception) {
                     ""
                 }
-                android.util.Log.d("EmojiInput", "emoji: '$emojiString' from raw input '${event.emoji}'")
 
+                android.util.Log.d("EmojiInput", "emoji: '$emojiString' from raw input '${event.emoji}'")
                 _uiState.update { it.copy(emoji = emojiString, emojiError = null) }
             }
-
 
             AddConcertEvent.SaveConcertClicked -> saveConcert()
         }
@@ -169,6 +168,7 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
         firestore.collection("concerts")
             .add(newConcert)
             .addOnSuccessListener {
+                scheduleNotification(newConcert) // ✅ pianificazione notifica
                 _uiState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
                     _effect.emit(AddConcertEffect.ShowSnackbar("Concert saved successfully!"))
@@ -182,9 +182,30 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
     }
-}
 
-private fun Char.isEmoji(): Boolean {
-    val type = Character.getType(this)
-    return type == Character.SURROGATE.toInt() || type == Character.OTHER_SYMBOL.toInt()
+    private fun scheduleNotification(concert: Concert) {
+        val concertTimeMillis = concert.date?.toDate()?.time ?: return
+        val now = System.currentTimeMillis()
+        val delay = concertTimeMillis - now - 24 * 60 * 60 * 1000 // 24 ore prima
+
+
+        if (delay > 0) {
+            val data = workDataOf(
+                "title" to "🎤 ${concert.artist}",
+                "message" to "Your concert at ${concert.location} is in 24 hours!"
+            )
+
+            val request = OneTimeWorkRequestBuilder<NotificationWorker>()
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .setInputData(data)
+                .build()
+
+            WorkManager.getInstance(getApplication()).enqueue(request)
+        }
+    }
+
+    private fun Char.isEmoji(): Boolean {
+        val type = Character.getType(this)
+        return type == Character.SURROGATE.toInt() || type == Character.OTHER_SYMBOL.toInt()
+    }
 }
