@@ -22,6 +22,8 @@ data class AddConcertUiState(
     val emoji: String = "",
     val locationError: String? = null,
     val dateError: String? = null,
+    val colorHex: String = "#90CAF9",
+    val colorError: String? = null,
     val emojiError: String? = null,
     val isLoading: Boolean = false
 )
@@ -31,6 +33,8 @@ sealed class AddConcertEvent {
     data class LocationChanged(val location: String) : AddConcertEvent()
     data class DateChanged(val date: Timestamp?) : AddConcertEvent()
     data class EmojiChanged(val emoji: String) : AddConcertEvent()
+    data class ColorChanged(val colorHex: String) : AddConcertEvent()
+
     object SaveConcertClicked : AddConcertEvent()
 }
 
@@ -88,6 +92,10 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
 
             is AddConcertEvent.DateChanged ->
                 _uiState.update { it.copy(dateTimestamp = event.date, dateError = null) }
+
+            is AddConcertEvent.ColorChanged -> {
+                _uiState.update { it.copy(colorHex = event.colorHex, colorError = null) }
+            }
 
             is AddConcertEvent.EmojiChanged -> {
                 val emoji = event.emoji
@@ -154,7 +162,8 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
             location = _uiState.value.location.trim(),
             date = _uiState.value.dateTimestamp!!,
             emoji = _uiState.value.emoji,
-            userId = currentUser.uid
+            userId = currentUser.uid,
+            colorHex = _uiState.value.colorHex
         )
 
         firestore.collection("concerts")

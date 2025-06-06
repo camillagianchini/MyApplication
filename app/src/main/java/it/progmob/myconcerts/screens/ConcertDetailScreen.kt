@@ -1,6 +1,7 @@
 package it.progmob.myconcerts.screens
 
 import android.annotation.SuppressLint
+import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,7 +22,6 @@ import it.progmob.myconcerts.Concert
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,10 +39,25 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
         }
     }
 
-    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
+    // 👇 Estrai MaterialTheme prima di usarlo in remember
+    val fallbackColor = MaterialTheme.colorScheme.primary
+
+    val backgroundBrush = remember(concert?.colorHex, fallbackColor) {
+        try {
+            val color = Color(AndroidColor.parseColor(concert?.colorHex ?: "#90CAF9"))
+            Brush.verticalGradient(
+                colors = listOf(color.copy(alpha = 0.6f), color.copy(alpha = 0.3f))
+            )
+        } catch (e: Exception) {
+            Brush.verticalGradient(
+                colors = listOf(fallbackColor.copy(alpha = 0.6f), fallbackColor.copy(alpha = 0.3f))
+            )
+        }
+    }
 
     Scaffold(
-        containerColor = backgroundColor,
+        modifier = Modifier.background(brush = backgroundBrush),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = {
@@ -60,7 +77,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor
+                    containerColor = Color.Transparent
                 )
             )
         }
@@ -73,9 +90,6 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-
-            // 🎉 Emoji
             Box(
                 modifier = Modifier
                     .size(140.dp)
@@ -91,21 +105,18 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                 )
             }
 
-            // Artista
             Text(
                 text = concert?.artist ?: "Unknown",
                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
-            // Data evento
             Text(
                 text = concert?.date?.let { dateFormatter.format(it.toDate()) } ?: "",
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 20.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
-            // Countdown
             Surface(
                 shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
@@ -115,8 +126,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                     text = remainingTime,
                     style = MaterialTheme.typography.headlineSmall.copy(fontSize = 28.sp),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .padding(vertical = 12.dp, horizontal = 32.dp)
+                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 32.dp)
                 )
             }
         }
@@ -138,8 +148,5 @@ private fun formatCountdown(date: Timestamp?): String {
     val hours = (diff / (1000 * 60 * 60)) % 24
     val days = diff / (1000 * 60 * 60 * 24)
 
-    return String.format(
-        "%02d : %02d : %02d : %02d",
-        days, hours, minutes, seconds
-    )
+    return String.format("%02d : %02d : %02d : %02d", days, hours, minutes, seconds)
 }

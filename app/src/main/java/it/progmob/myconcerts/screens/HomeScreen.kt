@@ -143,20 +143,18 @@ fun ConcertItem(concert: Concert, onClick: () -> Unit) {
             )
         )
     } else {
-        val baseColor = remember(concert.id) {
-            Color(
-                red = (concert.id.hashCode() % 128 + 128) / 255f,
-                green = (concert.id.hashCode() % 96 + 160) / 255f,
-                blue = (concert.id.hashCode() % 64 + 192) / 255f
+        try {
+            val base = Color(android.graphics.Color.parseColor(concert.colorHex))
+            Brush.horizontalGradient(
+                colors = listOf(base.copy(alpha = 0.8f), base.copy(alpha = 0.4f))
+            )
+        } catch (e: Exception) {
+            Brush.horizontalGradient(
+                colors = listOf(Color.Cyan.copy(alpha = 0.8f), Color.Cyan.copy(alpha = 0.4f))
             )
         }
-        Brush.horizontalGradient(
-            colors = listOf(
-                baseColor.copy(alpha = 0.8f),
-                baseColor.copy(alpha = 0.4f)
-            )
-        )
     }
+
 
     Card(
         onClick = onClick,

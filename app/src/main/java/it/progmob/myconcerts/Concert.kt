@@ -8,5 +8,6 @@ data class Concert(
     val artist: String = "",
     val location: String = "",
     val date: Timestamp = Timestamp.now(),
-    val userId: String = ""
+    val userId: String = "",
+    val colorHex: String = ""
 )

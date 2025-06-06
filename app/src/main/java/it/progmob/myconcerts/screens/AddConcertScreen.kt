@@ -4,9 +4,12 @@ import android.app.Application
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -16,11 +19,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.compose.ui.graphics.Color
+
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -194,6 +200,37 @@ fun AddConcertScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
             )
+
+            val colors = listOf(
+                "#EF9A9A", "#F48FB1", "#CE93D8", "#9FA8DA",
+                "#90CAF9", "#A5D6A7", "#FFF59D", "#FFCC80"
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                colors.forEach { hex ->
+                    val color = Color(android.graphics.Color.parseColor(hex))
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(
+                                width = 2.dp,
+                                color = if (uiState.colorHex == hex) Color.Black else Color.Transparent,
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                viewModel.onEvent(AddConcertEvent.ColorChanged(hex))
+                            }
+                    )
+                }
+            }
+
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 Button(onClick = { datePickerDialog.show() }, modifier = Modifier.weight(1f)) {
