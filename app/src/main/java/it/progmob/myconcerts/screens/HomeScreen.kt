@@ -181,6 +181,7 @@ fun ConcertItem(concert: Concert, onClick: () -> Unit) {
                     modifier = Modifier.padding(end = 12.dp)
                 )
 
+
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
