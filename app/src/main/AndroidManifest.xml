@@ -19,6 +19,7 @@
 
         <activity
             android:name=".WelcomeActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:theme="@style/Theme.MyApplication">
             <intent-filter>

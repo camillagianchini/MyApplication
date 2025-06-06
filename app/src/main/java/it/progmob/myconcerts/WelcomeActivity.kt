@@ -23,7 +23,7 @@ class WelcomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val forTesting = true
+        val forTesting = false
 
         if (forTesting) {
             FirebaseAuth.getInstance().signOut()
@@ -46,10 +46,16 @@ class WelcomeActivity : ComponentActivity() {
         val intent = AuthUI.getInstance()
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
+            .setTheme(R.style.FirebaseAuthPickerTheme) // ✅ Applica il tuo tema principale
+            .setTosAndPrivacyPolicyUrls( // facoltativo ma raccomandato da Firebase
+                "https://yourapp.com/terms",
+                "https://yourapp.com/privacy"
+            )
             .build()
 
         signInLauncher.launch(intent)
     }
+
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
         if (result.resultCode == RESULT_OK) {
