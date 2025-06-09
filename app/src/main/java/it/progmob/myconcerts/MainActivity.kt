@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import it.progmob.myconcerts.navigation.ScreenRoute
 import it.progmob.myconcerts.screens.AddConcertScreen
@@ -68,11 +69,23 @@ fun AppNavigation(homeViewModel: HomeViewModel = viewModel()) {
         composable(route = ScreenRoute.Home.route) {
             HomeScreen(navController = navController, viewModel = homeViewModel)
         }
-        composable(route = ScreenRoute.AddConcert.route) {
-            AddConcertScreen(navController = navController)
+        composable(
+            route = ScreenRoute.AddConcert.route + "?editId={editId}",
+            arguments = listOf(navArgument("editId") {
+                nullable = true
+                defaultValue = ""
+            })
+        ) { backStackEntry ->
+            val editId = backStackEntry.arguments?.getString("editId")
+            val concert = concerts.find { it.id == editId }
+            AddConcertScreen(navController = navController, concertToEdit = concert)
         }
+
         composable(
             route = ScreenRoute.ConcertDetail.route,
+            arguments = listOf(navArgument("concertId") {
+                type = androidx.navigation.NavType.StringType
+            }),
             deepLinks = listOf(navDeepLink {
                 uriPattern = "myconcerts://concert_detail/{concertId}"
             })
@@ -81,6 +94,7 @@ fun AppNavigation(homeViewModel: HomeViewModel = viewModel()) {
             val concert = concerts.find { it.id == concertId }
             ConcertDetailScreen(navController = navController, concert = concert)
         }
+
 
     }
 }

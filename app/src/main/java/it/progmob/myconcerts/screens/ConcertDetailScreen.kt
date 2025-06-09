@@ -6,7 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
 import it.progmob.myconcerts.Concert
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -70,8 +74,39 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.Filled.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        concert?.id?.let {
+                            navController.navigate("add_concert?editId=$it")
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    IconButton(onClick = {
+                        concert?.id?.let { id ->
+                            FirebaseFirestore.getInstance()
+                                .collection("concerts")
+                                .document(id)
+                                .delete()
+                                .addOnSuccessListener {
+                                    navController.popBackStack()
+                                }
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -81,6 +116,7 @@ fun ConcertDetailScreen(navController: NavController, concert: Concert?) {
                 )
             )
         }
+
     ) { padding ->
         Column(
             modifier = Modifier

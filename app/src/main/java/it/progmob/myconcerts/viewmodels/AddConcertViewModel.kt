@@ -38,6 +38,8 @@ sealed class AddConcertEvent {
     data class DateChanged(val date: Timestamp?) : AddConcertEvent()
     data class EmojiChanged(val emoji: String) : AddConcertEvent()
     data class ColorChanged(val colorHex: String) : AddConcertEvent()
+    data class PreloadConcert(val concert: Concert) : AddConcertEvent()
+
     object SaveConcertClicked : AddConcertEvent()
 }
 
@@ -47,6 +49,8 @@ sealed class AddConcertEffect {
 }
 
 class AddConcertViewModel(application: Application) : AndroidViewModel(application) {
+
+    private var editingConcertId: String? = null
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -87,6 +91,20 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
 
     fun onEvent(event: AddConcertEvent) {
         when (event) {
+            is AddConcertEvent.PreloadConcert -> {
+                _uiState.update {
+                    it.copy(
+                        artist = event.concert.artist,
+                        location = event.concert.location,
+                        dateTimestamp = event.concert.date,
+                        emoji = event.concert.emoji,
+                        colorHex = event.concert.colorHex,
+                    )
+                }
+                editingConcertId = event.concert.id
+            }
+
+
             is AddConcertEvent.ArtistChanged ->
                 _uiState.update { it.copy(artist = event.artist, artistError = null) }
 
@@ -158,7 +176,7 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(isLoading = true) }
 
         val newConcert = Concert(
-            id = "",
+            id = editingConcertId ?: "", // important for update
             artist = _uiState.value.artist.trim(),
             location = _uiState.value.location.trim(),
             date = _uiState.value.dateTimestamp!!,
@@ -167,25 +185,47 @@ class AddConcertViewModel(application: Application) : AndroidViewModel(applicati
             colorHex = _uiState.value.colorHex
         )
 
-        firestore.collection("concerts")
-            .add(newConcert)
-            .addOnSuccessListener { docRef ->
-                val savedConcert = newConcert.copy(id = docRef.id)
-                scheduleNotification(savedConcert)
+        // 🎯 Check if we're editing or adding
+        if (editingConcertId != null) {
+            // 🔄 UPDATE
+            firestore.collection("concerts").document(editingConcertId!!)
+                .set(newConcert)
+                .addOnSuccessListener {
+                    _uiState.update { it.copy(isLoading = false) }
+                    viewModelScope.launch {
+                        _effect.emit(AddConcertEffect.ShowSnackbar("Concert updated successfully!"))
+                        _effect.emit(AddConcertEffect.NavigateBack)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    viewModelScope.launch {
+                        _effect.emit(AddConcertEffect.ShowSnackbar("Error updating concert: ${e.message}"))
+                    }
+                }
+        } else {
+            // 🆕 CREATE
+            firestore.collection("concerts")
+                .add(newConcert)
+                .addOnSuccessListener { docRef ->
+                    val savedConcert = newConcert.copy(id = docRef.id)
+                    scheduleNotification(savedConcert)
 
-                _uiState.update { it.copy(isLoading = false) }
-                viewModelScope.launch {
-                    _effect.emit(AddConcertEffect.ShowSnackbar("Concert saved successfully!"))
-                    _effect.emit(AddConcertEffect.NavigateBack)
+                    _uiState.update { it.copy(isLoading = false) }
+                    viewModelScope.launch {
+                        _effect.emit(AddConcertEffect.ShowSnackbar("Concert saved successfully!"))
+                        _effect.emit(AddConcertEffect.NavigateBack)
+                    }
                 }
-            }
-            .addOnFailureListener { e ->
-                _uiState.update { it.copy(isLoading = false) }
-                viewModelScope.launch {
-                    _effect.emit(AddConcertEffect.ShowSnackbar("Saving error: ${e.message}"))
+                .addOnFailureListener { e ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    viewModelScope.launch {
+                        _effect.emit(AddConcertEffect.ShowSnackbar("Saving error: ${e.message}"))
+                    }
                 }
-            }
+        }
     }
+
 
     private fun scheduleNotification(concert: Concert) {
         val concertTimeMillis = concert.date?.toDate()?.time ?: return

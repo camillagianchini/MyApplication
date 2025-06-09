@@ -38,9 +38,18 @@ import it.progmob.myconcerts.navigation.ScreenRoute
 import it.progmob.myconcerts.ui.theme.MyApplicationTheme
 import it.progmob.myconcerts.viewmodels.HomeViewModel
 import java.util.*
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.rememberDismissState
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.runtime.LaunchedEffect
+import androidx.core.graphics.toColorInt
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewModel()) {
     val concerts by viewModel.concerts.collectAsState()
@@ -111,17 +120,70 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues), // Use the padding provided by Scaffold
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), // Padding for items inside LazyColumn
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(concerts) { concert ->
-                    ConcertItem(
-                        concert = concert,
-                        onClick = {
-                            navController.navigate(ScreenRoute.ConcertDetail.createRoute(concert.id))
+                val cardShape = RoundedCornerShape(16.dp)
+
+                items(concerts, key = { it.id }) { concert ->
+                    val dismissState = rememberDismissState()
+                    val isDismissed = dismissState.isDismissed(DismissDirection.EndToStart)
+
+                    if (isDismissed) {
+                        LaunchedEffect(concert.id) {
+                            FirebaseFirestore.getInstance()
+                                .collection("concerts")
+                                .document(concert.id)
+                                .delete()
                         }
-                    )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp, vertical = 4.dp) // 👈 Padding esterno comune
+                    ) {
+                        SwipeToDismiss(
+                            state = dismissState,
+                            background = {
+                                val direction = dismissState.dismissDirection
+                                if (direction != null) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxSize(),
+                                        shape = cardShape,
+                                        color = Color.Red
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.CenterEnd
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Delete",
+                                                tint = Color.White,
+                                                modifier = Modifier.padding(end = 16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            dismissContent = {
+                                Surface(
+                                    shape = cardShape,
+                                    tonalElevation = 0.dp
+                                ) {
+                                    ConcertItem(
+                                        concert = concert,
+                                        onClick = {
+                                            navController.navigate(ScreenRoute.ConcertDetail.createRoute(concert.id))
+                                        }
+                                    )
+                                }
+                            },
+                            directions = setOf(DismissDirection.EndToStart)
+                        )
+                    }
                 }
             }
         }
@@ -144,7 +206,7 @@ fun ConcertItem(concert: Concert, onClick: () -> Unit) {
         )
     } else {
         try {
-            val base = Color(android.graphics.Color.parseColor(concert.colorHex))
+            val base = Color(concert.colorHex.toColorInt())
             Brush.horizontalGradient(
                 colors = listOf(base.copy(alpha = 0.8f), base.copy(alpha = 0.4f))
             )

@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Timestamp
+import it.progmob.myconcerts.Concert
 import it.progmob.myconcerts.ui.theme.MyApplicationTheme
 import it.progmob.myconcerts.viewmodels.AddConcertEffect
 import it.progmob.myconcerts.viewmodels.AddConcertEvent
@@ -42,7 +43,8 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddConcertScreen(
-    navController: NavController
+    navController: NavController,
+    concertToEdit: Concert? = null
 ) {
     val context = LocalContext.current
     val viewModel: AddConcertViewModel = viewModel(
@@ -67,6 +69,12 @@ fun AddConcertScreen(
     var showSuggestions by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        // Preload concert if we are editing
+        concertToEdit?.let {
+            viewModel.onEvent(AddConcertEvent.PreloadConcert(it))
+        }
+
+        // Listen for one-time effects (snackbar, navigation)
         viewModel.effect.collect { effect ->
             when (effect) {
                 is AddConcertEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
@@ -74,6 +82,7 @@ fun AddConcertScreen(
             }
         }
     }
+
 
     fun updateViewModelWithDateTime() {
         if (selectedDateCalendar != null && selectedTimeHour != null && selectedTimeMinute != null) {

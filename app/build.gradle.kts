@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "it.progmob.myconcerts"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -73,6 +73,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.6.7") // Verifica l'ultima versione
     implementation("androidx.compose.material:material-icons-extended:1.6.7") // Verifica l'ulti
     implementation ("androidx.navigation:navigation-compose:$nav_version")
+    implementation ("androidx.compose.material:material:1.6.0")
+    implementation(libs.androidx.core.splashscreen) // o la versione compatibile con la tua Compose BOM
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
