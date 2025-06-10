@@ -70,8 +70,14 @@ fun AddConcertScreen(
 
     LaunchedEffect(Unit) {
         // Preload concert if we are editing
-        concertToEdit?.let {
-            viewModel.onEvent(AddConcertEvent.PreloadConcert(it))
+        concertToEdit?.let { concert ->
+            viewModel.onEvent(AddConcertEvent.PreloadConcert(concert))
+            concert.date.toDate().let { date ->
+                val cal = Calendar.getInstance().apply { time = date }
+                selectedDateCalendar = cal
+                selectedTimeHour = cal.get(Calendar.HOUR_OF_DAY)
+                selectedTimeMinute = cal.get(Calendar.MINUTE)
+            }
         }
 
         // Listen for one-time effects (snackbar, navigation)
